@@ -1,6 +1,5 @@
 *.swp
-sysprog/client
-sysprog/server
+sysprog/talker
 
 # bject files
 *.o
