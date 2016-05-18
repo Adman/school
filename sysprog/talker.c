@@ -1,11 +1,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <signal.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netdb.h>
 #include <termios.h>
 #include <unistd.h>
 #include <sys/select.h>
@@ -19,8 +21,7 @@ struct termios termattr;
 void write_msg(int fd, char *msg, int bytes)
 {
 	if (write(fd, msg, bytes) < 0) {
-		if (sockfd > -1)
-			close(sockfd);
+		close(sockfd);
 		perror("Failed: write");
 		exit(1);
 	}
@@ -32,10 +33,10 @@ void print_time(void)
 	struct tm * timeinfo;
 	char buffer[30];
 
-	time (&rawtime);
+	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 
-	strftime (buffer, 80, "[%H:%M] ", timeinfo);
+	strftime(buffer, 80, "[%H:%M] ", timeinfo);
 	write_msg(STDIN, buffer, strlen(buffer));
 }
 
@@ -64,23 +65,41 @@ void quit(int sig)
 
 int main(int argc, char *argv[])
 {
-	u_int16_t port = 12345;
+	
+	u_int16_t destport = 12345;
+	u_int16_t myport = 12345;
 	char buf[MAX_MSG+1];
 	char prefix[] = "-> ";
 	int bytes_read;
 	int running;
 
-	struct sockaddr_in me, client;
-
-	socklen_t clientlen = sizeof(client);
+	struct sockaddr_in me, to;
+	struct hostent *host;
 
 	fd_set readfds;
 
 	signal(SIGINT, quit);
 	signal(SIGTERM, quit);
 
-	if (argc > 1) {
-		sscanf(argv[1], "%hu", &port);
+	if (argc < 2) {
+		printf("Usage: %s address [destport] [myport]\n", argv[0]);
+		exit(1);
+	}
+
+	if (argc > 2) {
+		if (atoi(argv[2]) == 0) {
+			printf("Destination port incorrect!\n");
+			exit(1);
+		}
+		sscanf(argv[2], "%hu", &destport);
+	}
+
+	if (argc > 3) {
+		if (atoi(argv[3]) == 0) {
+			printf("Local port icorrect!\n");
+			exit(1);
+		}
+		sscanf(argv[3], "%hu", &myport);
 	}
 
 	if (tcgetattr(0, &termattr) < 0) {
@@ -88,22 +107,39 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	me.sin_family = AF_INET;
-	me.sin_addr.s_addr = htonl(INADDR_ANY);
-	me.sin_port = htons(port);
-
+	host = gethostbyname(argv[1]);
+	if (host == NULL) {
+		perror("Failed: hostname");
+		exit(1);
+	}
+	
 	if ((sockfd = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
 		perror("Failed: socket");
 		exit(1);
 	}
+	
+	me.sin_family = AF_INET;
+	me.sin_addr.s_addr = htonl(INADDR_ANY);
+	me.sin_port = htons(myport);
 
 	if (bind(sockfd, (struct sockaddr *)&me, sizeof(me)) == -1) {
 		perror("Failed: bind");
 		exit(1);
 	}
 
+	to.sin_family = AF_INET;
+	to.sin_port = htons(destport);
+	to.sin_addr = *(struct in_addr *)(host->h_addr_list[0]);
+
 	print_time();
-	printf("Server started on port %d...\n", port);
+	printf("Starting on port %d...\n", myport);
+	print_time();
+	printf("Connecting to %s:%d\n", inet_ntoa(to.sin_addr), destport);
+
+	if (connect(sockfd, (struct sockaddr*)&to, sizeof(to)) == -1) {
+		perror("Failed: connect");
+		exit(1);
+	}
 
 	running = 1;
 	while (running) {
@@ -123,22 +159,19 @@ int main(int argc, char *argv[])
 			if (fgets(buf, MAX_MSG+1, stdin) == NULL) {
 				running = 0;
 			} else {
-				if (sendto(sockfd, buf, strlen(buf), 0,
-						(struct sockaddr*)&client,
-						clientlen) < 0) {
+				if (send(sockfd, buf, strlen(buf), 0) < 0) {
 					perror("Failed: sendto");
 					close(sockfd);
 					exit(-1);
 				}
 			}
 		} else if (FD_ISSET(sockfd, &readfds)) {
-			bytes_read = recvfrom(sockfd, buf, MAX_MSG, 0,
-					(struct sockaddr*)&client, &clientlen);
+			bytes_read = recv(sockfd, buf, MAX_MSG, 0);
 			if (bytes_read < 0) {
 				perror("Failed: recv");
 				close(sockfd);
 				exit(1);
-			} else if (bytes_read > 0) {
+			} else if (bytes_read > 0){
 				buf[bytes_read] = 0;
 				print_time();
 				write_msg(STDIN, prefix, 3);
@@ -148,7 +181,7 @@ int main(int argc, char *argv[])
 	}
 
 	print_time();
-	printf("Closing server...\n");
+	printf("Closing client...\n");
 	close(sockfd);
 
 	return 0;
