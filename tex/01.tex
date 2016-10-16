@@ -1,0 +1,108 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cmap}
+\usepackage[slovak]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\newenvironment{subst}
+ {\renewcommand{\arraystretch}{1.2}%
+       \left\|\begin{array}{l}}
+            {\end{array}\right\|}
+
+\begin{document}
+\title{%
+    DÚ č. 1, predmet Proseminár z \TeX-u}
+
+            \author{Adrián Matejov, 2INF2}
+
+    \maketitle
+
+	\begin{enumerate}
+    \item Príklad č. 1: {\it Vypočítajte}
+		$$1 + 2 + \cdots  + n = \frac{n(n+1)}{2}$$
+		Riešenie Mat. indukciou:\\
+		1) rovnosť platí pre $n=1$\\
+		2) predpokladajme, že platí pre $n=k$. Dokážeme, že platí aj pre $n=k + 1$\\
+		$$1 + 2 + \cdots  + k + k + 1 = \frac{(k+1)(k+2)}{2}$$\\
+		použijeme indukčný predpoklad
+        \begin{align*}
+            \frac{k(k+1)}{2} + k + 1 &= \frac{(k+1)(k+2)}{2}\\
+            \frac{k(k+1)+2k+2}{2} &= \frac{(k+1)(k+2)}{2}\\
+            k(k+1)+2k+2 &= (k+1)(k+2)\\
+            k^{2} + 3k + 2 &= k^{2} + 3k + 2
+        \end{align*}
+
+    \item Príklad č. 179: {\it Vypočítajte}
+        \[ \lim_{x \to \infty} \sqrt{n+1}-\sqrt{n} \]
+
+        Riešenie: Rovnosť prenásobíme $\frac{\sqrt{n+1}+\sqrt{n}}{\sqrt{n+1}+\sqrt{n}}$
+        \begin{align*}
+            \lim_{x \to \infty} \sqrt{n+1}-\sqrt{n}
+            &= \lim_{x \to \infty} \bigg(\sqrt{n+1}-\sqrt{n}\bigg).\frac{\sqrt{n+1}+\sqrt{n}}{\sqrt{n+1}+\sqrt{n}} \\
+            &= \lim_{x \to \infty} \frac{n+1-n}{\sqrt{n+1}+\sqrt{n}} \\
+            &= \lim_{x \to \infty} \frac{1}{\sqrt{n+1}+\sqrt{n}} \\
+            &= 0
+        \end{align*}
+
+    \item Príklad č. 1191/a: {\it Vypočítajte}
+        $$\int\frac{dx}{x\sqrt{x^{2}-2}}$$
+
+        Riešenie: substitúciou
+        \begin{gather*}
+            \int\frac{dx}{x\sqrt{x^{2}-2}}
+            \begin{subst}
+                x=\frac{1}{t}\\
+                dx=\frac{-dt}{t^{2}}
+            \end{subst} =
+            \int\frac{\frac{-dt}{t^{2}}}{\frac{1}{t}\sqrt{\frac{1}{t^{2}}-2}} =
+            \int\frac{-dt}{t\sqrt{\frac{1}{t^{2}}-2}}\\
+            = -\int\frac{dt}{\sqrt{1-2t^{2}}}
+            = -\int\frac{dt}{\sqrt{\frac{1}{2}-t^{2}}}\cdot\frac{1}{\sqrt{2}}
+            = -\frac{1}{\sqrt{2}}\arcsin \frac{t}{\frac{1}{\sqrt{2}}}\\
+            = -\frac{1}{\sqrt{2}}\arcsin(t\sqrt{2})
+            = -\frac{1}{\sqrt{2}}\arcsin\frac{\sqrt{2}}{x}
+        \end{gather*}
+
+    \item Príklad č. 2999: {\it Vypočítajte sumu}
+        $$\sum_{n=0}^{\infty}\frac{(-1)^{n}\cdot n}{(2n+1)!}$$
+
+        Riešenie:\\
+        Sumu prenásobíme číslom $x^{2n-1}$, kde $x=1$
+        \begin{gather*}
+            \sum_{n=0}^{\infty}\frac{(-1)^{n}\cdot n}{(2n+1)!} =
+            \sum_{n=0}^{\infty}\frac{(-1)^{n}\cdot n\cdot x^{2n-1}}{(2n+1)!}
+            \stackrel{(zintegrujeme)}{=}
+            \Bigg(\frac{1}{2}\sum_{n=0}^{\infty}\frac{(-1)^{n}\cdot x^{2n})}{(2n+1)!}\Bigg)^{\prime} \\
+            = \Bigg(\frac{1}{2x}\sum_{n=0}^{\infty}\frac{(-1)^{n}\cdot x^{2n+1}}{(2n+1)!}\Bigg)^{\prime}
+            \stackrel{(taylor)}{=}
+            \Bigg(\frac{\sin x}{2x}\Bigg)^{\prime}
+            = \frac{1}{2}\Bigg(\frac{x\cos x - \sin x}{x^{2}}\Bigg)\\
+            \stackrel{(x=1)}{=}
+            \frac{1}{2}(\cos 1 - \sin 1)
+        \end{gather*}
+
+
+    \item Príklad č. 1585: {\it Vypočítajte určitý integrál}
+        $$\int_{0}^{\pi}\frac{dt}{3+2\cos t}$$
+
+        Riešenie:
+        \begin{gather*}
+            \int_{0}^{\pi}\frac{dt}{3+2\cos t}
+            \begin{subst}
+                \tan \frac{t}{2} = z\\
+                t = 2\arctan z\\
+                dt = 2 \frac{dz}{1+z^{2}}
+            \end{subst} =
+            \int_{0}^{\infty}\frac{2dz}{(1+z^{2})(3+2\frac{1-z^{2}}{1+z^{2}})}\\
+            = 2\int_{0}^{\infty}\frac{dz}{3+3z^{2}+2-2z^{2}}
+            = 2\int_{0}^{\infty}\frac{dz}{z^{2}+5}
+            = 2\frac{1}{\sqrt{5}}\arctan \frac{z}{\sqrt{5}}\Big|_{0}^{\infty}
+            = \frac{2\cdot\pi}{\sqrt{5}\cdot2} = \frac{\pi}{\sqrt{5}}
+        \end{gather*}
+
+	\end{enumerate}
+\end{document}
+
