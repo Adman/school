@@ -1,0 +1,62 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cmap}
+\usepackage[slovak]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\newcommand{\ud}{\;\mathrm{d}}
+\newcommand{\cinterval}[1]{\ensuremath{\left[#1\right]}}
+\newcommand{\ointerval}[1]{\ensuremath{\left(#1\right)}}
+\newcommand\tab[1][0.5cm]{\hspace*{#1}}
+
+
+\begin{document}
+
+Pre $\alpha: \cinterval{a,b} \rightarrow \mathbb{R}$ takú, že
+$V\alpha \ointerval{a,b} < \infty$ definujeme
+$\sum\limits_{i=0}^{n-1} f(c_i) \Delta \alpha$, kde $c_i \in \mathrm{I}_i$,
+$f$ je $\mathrm{R}-\mathrm{S}$ integrovateľná vzhľadom k $\alpha$, ak \newline
+\tab $\exists A\in \mathbb{R} \ \ \forall \varepsilon > 0 \ \ \exists \delta > 0$
+$\exists D_{\cinterval{a,b}} \ \ \mu(D)<\delta \ \ \forall c_i \in \mathrm{I}_i$
+\ $\Big|\sum\limits_{i=0}^{n-1} f(c_i)\Delta\alpha_i-A\Big| < \varepsilon$ \newline
+v takom prípade definujeme $\int_{a}^{b}f\ud x = A$.
+
+\begin{enumerate}
+    \item Ukážte, že ak $\alpha: \cinterval{a,b}\rightarrow\mathbb{R}$ je rastúca,
+        tak tieto dve definície sú ekvivalentné.
+
+    \item Dokážte, že pre $f,\alpha: \cinterval{a,b}\rightarrow\mathbb{R}$,
+        $f\in\mathcal{R}(\alpha)$, platí: \newline
+        \begin{enumerate}
+            \item $\int_a^b cf\ud\alpha = c\int_a^b f\ud\alpha,\tab c\in \mathbb{R}$
+            \item $\int_a^b f\ud(c\alpha) = c\int_a^b f\ud\alpha,\tab c\in \mathbb{R}$
+            \item $\int_a^b (f+g)\ud\alpha = \int_a^b f\ud\alpha + \int_a^b g\ud\alpha$,
+                \tab teda ak $f,g \in \mathcal{R}(\alpha)$, potom $f+g \in \mathcal{R}(\alpha)$
+                a platí vzťah
+            \item $\int_a^b f\ud(\alpha + \beta) = \int_a^b f\ud\alpha + \int_a^b f\ud\beta$
+                \tab $f \in \mathcal{R}(\alpha)\cap\mathcal{R}(\beta)$, potom $f\in \mathcal{R}(\alpha + \beta)$
+        \end{enumerate}
+
+    \item $f,\alpha: \cinterval{a,b}\rightarrow\mathbb{R}$, $f$ je spojitá a $V\alpha<\infty$,
+        potom $f\in\mathcal{R}(\alpha)$
+
+    \item $f$ spojitá na $\cinterval{a,b}$, $s\in\left(a,b\right]$ a označme
+        $\chi_{\cinterval{s,b}}=\alpha(X)$. Potom
+        $\int_a^b f\ud\alpha = f(s)$\tab (v prípade $s=a$ zvolíme
+        $\alpha(X)=\chi_{\left(a,b\right]}$)
+
+    \item $\alpha:\cinterval{a,b}\rightarrow\mathbb{R}$ rastúca, spojitá v
+        $x_0 \in \cinterval{a,b}$, $f: \cinterval{a,b}\rightarrow\mathbb{R}$,\newline
+        $f(x)=\begin{cases}1,&x=x_0,\\0,&\textrm{inak}\end{cases}$.
+        Potom $f \in \mathcal{R}(\alpha)$, $\int_a^b f\ud\alpha=0$
+
+    \item $f:\cinterval{a,b}\rightarrow\mathbb{R}$ diferencovateľná, $f^{\prime}\in\mathcal{R}$.
+        Potom $Vf \left(a,b\right) < \infty$ a $\int_a^b |f^{\prime}(x)|\ud x=Vf$
+
+\end{enumerate}
+
+\end{document}
+
