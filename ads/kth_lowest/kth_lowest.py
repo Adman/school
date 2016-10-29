@@ -26,27 +26,16 @@ class Node:
         return self.right.kth_lowest(k-self.lchilds)
 
 
-class BinarySearchTree:
-    def __init__(self):
-        self.root = None
-
-    def add_node(self, node):
-        if self.root is None:
-            self.root = node
-        else:
-            self.root.add_child(node)
-
-    def kth_lowest(self, k):
-        return self.root.kth_lowest(k)
-
-
 q = int(input())
-bts = BinarySearchTree()
+root = None
 for _ in range(q):
     inp = input().split(' ')
     op, k = inp[0], int(inp[1])
 
     if op == 'i':
-        bts.add_node(Node(k))
+        if root is None:
+            root = Node(k)
+        else:
+            root.add_child(Node(k))
     elif op == 'f':
-        print(bts.kth_lowest(k))
+        print(root.kth_lowest(k))
