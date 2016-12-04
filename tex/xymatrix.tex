@@ -1,0 +1,28 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[top=2.5cm,bottom=2.5cm,left=1cm,right=1cm]{geometry}
+\usepackage[shorthands=off,slovak]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[all]{xy}
+
+\begin{document}
+$$ \xymatrix{
+    & & & & & *++[Fo]{}\ar@{-}[ddrrrrrrr] \ar@{-}[dddrrrrr] \ar@{-}[dddddll] \ar@{-}[ddddddlllll] & & & & & & & & & \\
+    \\
+    & & & & & & & & & & & & *++[Fo]{} \ar@{-}[dll] \ar@{-}[ddddddrr] \ar@{-}[ddddlll]|!{[dll];[ddddddddr]}\hole & & \\
+    & & & & & & & & & & *++[Fo]{} \ar@{-}[dddddddrrr] \ar@{-}[ddddddlllll] & & & & \\
+    \\
+    & & & *++[Fo]{} \ar@{-}[dlll] \ar@{-}[drrrrrr]|!{[uurrrrrrr];[ddddrr]}\hole \ar@{-}[dddddrrr]|!{[uurrrrrrr];[ddddrr]}\hole|!{[ddddrr];[dddddrrrrrrrrrr]}\hole & & & & & & & & & & & \\
+    *++[Fo]{} \ar@{-}[dddrrrrr] \ar@{-}[dddddddrr] & & & & & & & & & *++[Fo]{} \ar@{-}[ddrrrrr]|!{[uuur];[ddddrrrr]}\hole \ar@{-}[ddddlll]|!{[dddllll];[ddddrrrr]}\hole & & & & & \\
+    \\
+    & & & & & & & & & & & & & & *++[Fo]{} \ar@{-}[ddl] \ar@{-}[ddddddllll]|!{[uuuuullll];[ddl]}\hole|!{[dlllllllll];[ddl]}\hole \\
+    & & & & & *++[Fo]{} \ar@{-}[drrrrrrrr] \ar@{-}[ddddlll] & & & & & & & & & \\
+    & & & & & & *++[Fo]{} \ar@{-}[dddllll] \ar@{-}[ddddrrrr] & & & & & & & *++[Fo]{} \ar@{-}[ddddlll] & \\
+    \\
+    \\
+    & & *++[Fo]{} \ar@{-}[drrrrrrrr] & & & & & & & & & & & & \\
+    & & & & & & & & & & *++[Fo]{} & & & & \\} $$
+\end{document}
