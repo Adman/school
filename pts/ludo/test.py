@@ -1,6 +1,6 @@
 import unittest
 import random
-from ludo import Ludo, Player, FIELDS
+from ludo import Ludo, Player, FIELDS, MAX_POINTS
 
 
 class LudoTest(unittest.TestCase):
@@ -33,6 +33,24 @@ class LudoTest(unittest.TestCase):
 
         self.assertEqual(l2.players[0].pieces[0], l1.players[0].pieces[0])
         self.assertEqual(l1.turn, l2.turn - 1)
+
+    def test_scored(self):
+        dice = random.randint(1, 6)
+        l1 = self.get_ludo()
+        l1.players[0].pieces[0] = FIELDS-1
+        l2, _ = l1.move(0, dice)
+
+        self.assertEqual(l2.players[0].points, l1.players[0].points + 1)
+        self.assertFalse(l2.players[0].points == l1.players[0].points)
+
+    def test_finished(self):
+        dice = random.randint(1, 6)
+        l1 = self.get_ludo()
+        l1.players[0].pieces[0] = FIELDS - 1
+        l1.players[0].points = MAX_POINTS - 1
+        l2, status = l1.move(0, dice)
+
+        self.assertTrue(status)
 
 
 if __name__ == '__main__':
