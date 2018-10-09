@@ -21,7 +21,12 @@
 
 ## Results
 
-**Testing against standard sort, push_heap + pop_heap and make_heap + sort_heap**
+Programs compiled using
+```bash
+g++ -std=c++11 -Wall -Werror -pedantic -O3 -march=native dheap.cpp -o dheap
+```
+
+**Testing against standard sort and make_heap + sort_heap**
 
 Sorting numbers in range [100, 10000] with the step of 100.
 
