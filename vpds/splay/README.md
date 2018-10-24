@@ -1,7 +1,7 @@
 Splay tree
 ==========
 
-*I had to run some tests A and B on small N, because it took too much time to get the result on higher N*
+*I had to run tests A and B on small N, because it took too much time to get the result on higher N*
 
 ## Test A
 
