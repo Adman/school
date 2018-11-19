@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stdint.h>
 #include <algorithm>
 #include <unordered_set>
 #include <math.h>
@@ -7,6 +6,7 @@
 #include <emmintrin.h>
 #include <smmintrin.h>
 #include <immintrin.h>
+#include <random>
 
 using namespace std;
 using namespace std::chrono;
@@ -17,37 +17,38 @@ const int num_groups = size / 16;
 
 const uint8_t empty = 128;
 
-inline int64_t H1(int64_t hash)
+inline long long H1(long long hash)
 {
     return hash >> 7;
 }
 
-inline uint8_t H2(int64_t hash)
+inline uint8_t H2(long long hash)
 {
     return (uint8_t)(hash & 127);
 }
 
-inline int64_t get_hash(int64_t x)
+inline long long get_hash(long long x)
 {
     return x % size;
 }
 
-uint16_t match(uint8_t hash, uint8_t ctrl[], int64_t group_start)
+uint16_t match(uint8_t hash, uint8_t ctrl[], long long group_start)
 {
     return (uint16_t)_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_set1_epi8(hash),
                                               _mm_loadu_si128((__m128i *)&ctrl[group_start])));
 }
 
-int64_t find(int64_t x, uint8_t ctrl[], int64_t arr[])
+long long find(long long x, uint8_t ctrl[], long long arr[])
 {
-    int64_t hash = get_hash(x);
-    int64_t group = H1(hash) % num_groups;
+    long long hash = get_hash(x);
+    long long group = H1(hash) % num_groups;
     uint8_t h2hash = H2(hash);
     while(true) {
-        int64_t group_start = 16*group;
+        long long group_start = 16*group;
 
         uint16_t mask = match(h2hash, ctrl, group_start);
         while (mask > 0) {
+            /* taken from https://www.geeksforgeeks.org/position-of-rightmost-set-bit */
             int bit = log2(mask & -mask) + 1;
             if (x == arr[group_start + bit-1])
                 return group_start + bit-1;
@@ -60,11 +61,11 @@ int64_t find(int64_t x, uint8_t ctrl[], int64_t arr[])
     }
 }
 
-void insert(int64_t x, uint8_t ctrl[], int64_t arr[])
+void insert(long long x, uint8_t ctrl[], long long arr[])
 {
-    int64_t hash = get_hash(x);
-    int64_t group = H1(hash) % num_groups;
-    int64_t pos = 0;
+    long long hash = get_hash(x);
+    long long group = H1(hash) % num_groups;
+    long long pos = 0;
     while(true) {    
         if (ctrl[(16*group + pos) % size] == empty) {
             ctrl[(16*group + pos) % size] = H2(hash);
@@ -78,29 +79,35 @@ void insert(int64_t x, uint8_t ctrl[], int64_t arr[])
 int main(int argc, char** argv)
 {
     uint8_t ctrl[size+16];
-    int64_t arr[size+16];
+    long long arr[size+16];
+
+    long long values[N];
 
     fill_n(ctrl, size, empty);
     fill_n(arr, size, -1);
 
-    unordered_set<int64_t> uset;
+    unordered_set<long long> uset;
 
     auto t1 = 0;
     auto t2 = 0;
 
+    /* generate random numbers*/
+    for (long long i = 0; i < N; i++)
+        values[i] = ((long long)rand() << 32) | rand();
+
     /* insert numbers 0,...,N-1 with step 2*/
-    for (int64_t i = 1000; i < 1000+N; i += 2) {
-        insert(i, ctrl, arr); 
-        uset.insert(i);
+    for (long long i = 0; i < N; i++) {
+        insert(values[i], ctrl, arr); 
+        uset.insert(values[i]);
     }
 
-    for (int64_t i = 1000; i < 1000+N; i++) {
+    for (long long i = 0; i < N; i++) {
         auto t11 = high_resolution_clock::now();
-        find(i, ctrl, arr);
+        find(values[i], ctrl, arr);
         auto t12 = high_resolution_clock::now();
 
         auto t21 = high_resolution_clock::now();
-        uset.find(i);
+        uset.find(values[i]);
         auto t22 = high_resolution_clock::now();
 
         t1 += duration_cast<microseconds>(t12 - t11).count();
