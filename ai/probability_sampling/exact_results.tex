@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,top=1.5cm,bottom=1.5cm,right=1.5cm,left=1.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{cmap}
+\usepackage[slovak]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{enumerate}
+
+
+\begin{document}
+\title{%
+    DÚ č. 5, AI}
+
+            \author{Adrián Matejov, 1mINF}
+
+    \maketitle
+
+    \begin{enumerate}
+        \item
+            \begin{multline*}
+                P(a) = \sum\limits_{E,B}P(B)P(E)P(a|B,E) = \\
+                = P(b)P(e)P(a|b,e)+P(\neg b)P(e)P(a|\neg b, e) + P(b)P(\neg e)P(a|b,\neg e) + P(\neg b)P(\neg e)P(a|\neg b,\neg e) = \\
+                = 0.001\cdot0.002\cdot0.95 + 0.999\cdot0.002\cdot0.29 + 0.001\cdot0.998\cdot0.94 + 0.999\cdot0.998\cdot0.001 = \\
+                = 0.002516442
+            \end{multline*}
+
+        \item
+            \begin{multline*}
+                P(m,j) = \sum\limits_{A,B,E}P(B)P(E)P(A|B,E)P(m,j|A) = \\
+                = P(b)P(e)P(a|b,e)P(j|a)P(m|a) + P(b)P(e)P(\neg a|b,e)P(j|\neg a)P(m|\neg a) + \\
+                + \cdots + P(\neg b)P(\neg e)P(\neg a|\neg b, \neg e)P(j|\neg a)P(m|\neg a) = \\
+                = 0.001\cdot 0.002\cdot 0.95\cdot 0.9\cdot 0.7 + 0.001\cdot 0.002\cdot 0.05\cdot 0.05\cdot 0.01 + \\
+                + 0.001\cdot 0.998\cdot 0.94\cdot 0.9\cdot 0.7 + 0.001\cdot 0.998\cdot 0.06\cdot 0.05\cdot 0.01 + \\
+                + 0.999\cdot 0.002\cdot 0.29\cdot 0.9\cdot 0.7 + 0.999\cdot 0.002\cdot 0.71\cdot 0.05\cdot 0.01 + \\
+                + 0.999\cdot 0.998\cdot 0.001\cdot 0.9\cdot 0.7 + 0.999\cdot 0.998\cdot 0.999\cdot 0.05\cdot 0.01 = \\
+                = 0.002084100239
+            \end{multline*}
+
+        \item
+            \begin{multline*}
+                P(b|a) = \frac{\sum\limits_E P(b)P(E)P(a|b,E)}{\sum\limits_{E,B}P(B)P(E)P(a|B,E)} =\\
+                = \frac{P(b)\Big( P(e)P(a|b,e) + P(\neg e)P(a|b,\neg e) \Big)}{P(b)P(e)P(a|b,e)+P(\neg b)P(e)P(a|\neg b, e) + P(b)P(\neg e)P(a|b,\neg e) + P(\neg b)P(\neg e)P(a|\neg b,\neg e)} = \\ \\
+                = \frac{0.001\Big( 0.002\cdot 0.95 + 0.998\cdot 0.94\Big)}{0.001\cdot 0.002\cdot 0.95 + 0.999\cdot 0.002\cdot 0.29 + 0.001\cdot 0.998\cdot 0.94 + 0.999\cdot 0.998\cdot 0.001} = \\
+                = 0.373551228281836020858020967699633053334827506455543183590...
+            \end{multline*}
+
+        \item 
+            \begin{multline*}
+                P(b|j,\neg m) = \frac{\sum\limits_{E,A} P(b)P(E)P(A|b,E)P(j|A)P(\neg m|A)}{\sum\limits_{B,E,A}P(B)P(E)P(A|B,E)P(j|A)P(\neg m|A)} = \\
+                = \frac{P(b)P(e)P(a|b,e)P(j|a)P(\neg m|a)+\cdots +P(b)P(\neg e)P(\neg a|b,\neg e)P(j|\neg a)P(\neg m|\neg a)}{P(b)P(e)P(a|b,e)P(j|a)P(\neg m|a) +\cdots + P(\neg b)P(\neg e)P(\neg a|\neg b, \neg e)P(j|\neg a)P(\neg m|\neg a)} = \\ \\
+                = \frac{\splitdfrac{0.001\cdot 0.002\cdot 0.95\cdot 0.9\cdot 0.3 + 0.001\cdot 0.002\cdot 0.05\cdot 0.05\cdot 0.99 +}{0.001\cdot 0.998\cdot 0.94\cdot 0.9\cdot 0.3 + 0.001\cdot 0.998\cdot 0.06\cdot 0.05\cdot 0.99}}{\splitdfrac{\splitdfrac{0.001\cdot 0.002\cdot 0.95\cdot 0.9\cdot 0.3 + 0.001\cdot 0.002\cdot 0.05\cdot 0.05\cdot 0.99 +}{0.001\cdot 0.998\cdot 0.94\cdot 0.9\cdot 0.3 + 0.001\cdot 0.998\cdot 0.06\cdot 0.05\cdot 0.99 +}}{\splitdfrac{0.999\cdot 0.002\cdot 0.29\cdot 0.9\cdot 0.3 + 0.999\cdot 0.002\cdot 0.71\cdot 0.05\cdot 0.99 +}{0.999\cdot 0.998\cdot 0.001\cdot 0.9\cdot 0.3 + 0.999\cdot 0.998\cdot 0.999\cdot 0.05\cdot 0.99}}} \\
+                = 0.005129858133401300083198702656742186954654303180346893961...
+            \end{multline*}
+    \end{enumerate}
+
+\end{document}
