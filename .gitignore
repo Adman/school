@@ -1,5 +1,7 @@
 *.swp
 sysprog/talker
+*.pyc
+__pycache__/
 
 # bject files
 *.o
