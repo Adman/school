@@ -70,10 +70,10 @@ from the second parent.
 
 ### Mutation
 
-I implemented 2 types of mutation. For each cell in gene, with the probability
-of 0.001, random mutation (mentioned below) will occur.
-* invert random bit
-* increment the cell by 1
+I implemented 2 types of mutation. For each cell in gene, with the probabilities
+mentioned below, the mutation will occur.
+* invert random bit - **1%**
+* increment the cell by 1 - **0.1%**
 
 ### Elitarism
 
@@ -99,7 +99,7 @@ You can change default settings in `consts.py` file.
 * **TOURNAMENT_N** - The number of individuals being picked in tournament selection.
 * **ELITARISM** - Boolean value indicating using elitarism.
 * **ELITARISM_N** - The number of individuals passed into next generation
-* **MAX_PROGRAM_STEPS** - The maximum number of steps virtual machine is able to execute.
+* **MAX_PROGRAM_STEPS** - The maximum number of steps virtual machine is able to do.
 
 ## Results
 
@@ -132,8 +132,12 @@ I tried to change it to increment entire cell value. The results stayed
 approximately the [same](results/6000_100_mutating_cell.png).
 
 People who study genetics think that mutation is responsible for improving
-individuals, so I decided to increase the probability to 0.01.
+individuals, so I decided to increase the probability to 0.01 for inverting
+random bit.
 
+![mutation changed](results/6000_100_diff_mut_prob.png)
+![solutions found 2000 steps](results/solution_2000_steps.png)
+![solutions found 1500 steps](results/solution_1500_steps.png)
 
-
+## Conclusion
 

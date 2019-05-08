@@ -21,18 +21,15 @@ class Program:
 
     def mutate(self):
         for i in range(64):
-            # 1% chance for mutation to occur at each address
+            # 1% chance for invert random bit to occur at each address
             if random.random() < 0.01:
-                mutation_id = random.randint(0, 1)
+                bit = random.randint(1, 7)
+                num = self.instructions[i] ^ (1 << bit)
+                self.instructions[i] = num
 
-                # invert random bit
-                if mutation_id == 0:
-                    bit = random.randint(1, 7)
-                    num = self.instructions[i] ^ (1 << bit)
-                # increment instruction cell
-                elif mutation_id == 1:
-                    num = (self.instructions[i] + 1) % 256
-
+            # 0.1% chance for incrementing the cell
+            if random.random() < 0.001:
+                num = (self.instructions[i] + 1) % 256
                 self.instructions[i] = num
 
     def compute_fitness(self):
