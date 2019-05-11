@@ -51,7 +51,7 @@ can choose which one will the program use. Both of them choose 2 parents.
 
 We pick randomly `n` individuals from the population and select the one
 with the best fitness amongst them. The second parent cannot be the same
-one, so pick `n` individuals from the population without the first parent and
+one, so we pick `n` individuals from the population without the first parent and
 select the one with the best fitness once again.
 
 #### Roulette
@@ -59,7 +59,7 @@ select the one with the best fitness once again.
 Each individual is assigned the following probability:
 ![roulette prob](http://latex.codecogs.com/gif.latex?p_i%3D%5Cfrac%7Bf_i%7D%7B%5Csum_i%20f_i%7D)
 
-Parent are chosen according to their probabilities without replacement.
+Parents are chosen according to their probabilities without replacement.
 
 ### Crossover
 
@@ -70,15 +70,15 @@ from the second parent.
 
 ### Mutation
 
-I implemented 2 types of mutation. For each cell in gene, with the probabilities
-mentioned below, the mutation will occur.
+I implemented 2 types of mutation.
+The mutation occurs at each cell with probabilities mentioned below.
 * invert random bit - **1%**
 * increment the cell by 1 - **0.1%**
 
 ### Elitarism
 
 If set to `True`, we take `n` best individuals into next generation. Important
-not: they do not mutate afterwards.
+note: individuals do not mutate afterwards.
 
 ### Fitness
 
@@ -108,7 +108,7 @@ I've been testing it on map located in `map.txt` with 5 treasures.
 
 ### First runs
 
-The first runs with 6000 generations, 30 individuals per generation, elitarism
+The first runs were done with 6000 generations, 30 individuals per generation, elitarism
 turned off and every mutation had `0.1% * 0.5` chance to occur.
 The hunter was able to find at most 3 treasures.
 
@@ -127,13 +127,13 @@ the performance and the hunter occasionally collected all the treasures.
 
 ### Mutation improvement
 
-In previous experiments the second mutation was incrementing cell's address.
+In previous experiments, the second mutation was incrementing cell's address.
 I tried to change it to increment entire cell value. The results stayed
 approximately the [same](results/6000_100_mutating_cell.png).
 
 People who study genetics think that mutation is responsible for improving
 individuals, so I decided to increase the probability to 0.01 for inverting
-random bit.
+random bit in each cell. This resulted in huge improvement.
 
 ![mutation changed](results/6000_100_diff_mut_prob.png)
 ![solutions found 2000 steps](results/solution_2000_steps.png)
@@ -141,3 +141,12 @@ random bit.
 
 ## Conclusion
 
+The overall results show roullete selection outperformed tournament. It has
+been able to find final solutions more quickly (tested on several runs).
+Also, elitarism and increase in number of individuals in population
+proved my assumption and improved results significantly.
+The final tuning on increasing the probability for the mutation inverting
+random bit brought amazing results.
+
+In the future, it would be interesting to try other types of selections,
+mutations and crossovers and compare it to current results.

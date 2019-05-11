@@ -40,9 +40,9 @@ def run_algorithm(world, selection):
 
         fitnesses.append(best_popul_fitness)
 
-        text = 'Generation: {}, crossover: {}, best fitness: {}, golds: {}'
+        text = 'Generation: {}, crossover: {}, best fitness: {}, golds: {}/{}'
         print(text.format(i, selection, best_popul_fitness,
-                          best_popul_gold_found))
+                          best_popul_gold_found, world.golds))
 
         if best_popul_gold_found == world.golds:
             print('Solution found: ', best_popul_ind.output)
