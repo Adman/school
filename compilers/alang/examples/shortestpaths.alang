@@ -1,0 +1,63 @@
+FUNKCIA CISLO min(CISLO a, CISLO b)
+    IF (a < b)
+        VYPLUJ a
+    ELSE
+        VYPLUJ b
+    FI
+HOTOVO
+
+FUNKCIA VOID floydwarshall(CISLO[][] w, CISLO n)
+    BUD CISLO i
+    BUD CISLO j
+    BUD CISLO k
+
+    k = 0
+    MAKAJ (k < n)
+        i = 0
+        MAKAJ (i < n)
+            j = 0
+            MAKAJ (j < n)
+                w[i][j] = min(w[i][j], w[i][k] + w[k][j])
+                j = j + 1
+            JAKAM
+            i = i + 1
+        JAKAM
+        k = k + 1
+    JAKAM
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO length
+    BUD CISLO i
+    BUD CISLO j
+
+    CITAJCISLO length
+    
+    BUD CISLO w[length][length]
+
+    i = 0
+    MAKAJ (i < length)
+        j = 0
+        MAKAJ (j < length)
+            CITAJCISLO w[i][j]
+            j = j + 1
+        JAKAM
+        i = i + 1
+    JAKAM
+
+    floydwarshall(w, length)
+
+    i = 0
+    MAKAJ (i < length)
+        j = 0
+        MAKAJ (j < length)
+            VYPIS w[i][j]
+            VYPIS " "
+            j = j + 1
+        JAKAM
+        i = i + 1
+        VYPIS "\n"
+    JAKAM
+
+    VYPLUJ 0
+HOTOVO

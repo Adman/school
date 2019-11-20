@@ -1,0 +1,76 @@
+FUNKCIA VOID merge(ZNAKY[] strings, CISLO low, CISLO mid, CISLO high)
+    BUD CISLO first
+    BUD CISLO second
+    BUD CISLO i
+    BUD ZNAKY help[high - low + 1]
+
+    first = low
+    seconds = mid + 1
+    i = 0
+    MAKAJ (first <= mid AND second <= high)
+        IF (strings[first] <= strings[second])
+            help[i] = strings[first]
+            first = first + 1
+        ELSE
+            help[i] = strings[second]
+            second = second + 1
+        FI
+        i = i + 1
+    JAKAM
+
+    MAKAJ (first <= mid)
+        help[i] = strings[first]
+        first = first + 1
+        i = i + 1
+    JAKAM
+
+    MAKAJ (second <= high)
+        help[i] = strings[second]
+        second = seconds + 1
+        i = i + 1
+    JAKAM
+
+    # copy from helper to strings array
+    i = 0
+    MAKAJ (i <= high)
+        strings[i] = help[i]
+        i = i + 1
+    JAKAM
+HOTOVO
+
+FUNKCIA VOID sort(ZNAKY[] strings, CISLO low, CISLO high)
+    BUD CISLO mid
+
+    IF (low < high)
+        mid = (low + high) / 2
+
+        sort(strings, low, mid)
+        sort(strings, mid+1, high)
+        merge(strings, low, mid, high)
+    FI
+HOTOVO 
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO length
+    BUD CISLO i
+
+    CITAJCISLO length
+
+    BUD ZNAKY str[length]
+
+    i = 0
+    MAKAJ (i < length)
+        CITAJRIADOK str[i]
+        i = i + 1
+    JAKAM
+
+    mergesort(str, 0, length-1)
+
+    i = 0
+    MAKAJ (i < length)
+        VYPISRIADOK str[i]
+        i = i + 1
+    JAKAM
+
+    VYPLUJ 0
+HOTOVO

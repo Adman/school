@@ -1,0 +1,23 @@
+FUNKCIA CISLO MAIN()
+    BUD CISLO maxnum
+    maxnum = -2147483647
+
+    BUD CISLO inp
+    BUD CISLO length
+    BUD CISLO i
+
+    CITAJCISLO length
+
+    i = 0
+    MAKAJ (i < length)
+        CITAJCISLO inp
+        IF (inp > maxnum)
+            maxnum = inp
+        FI
+        i = i + 1
+    JAKAM
+
+    VYPISRIADOK maxnum
+
+    VYPLUJ 0
+HOTOVO

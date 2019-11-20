@@ -2,6 +2,7 @@
 sysprog/talker
 *.pyc
 __pycache__/
+*.class
 
 # bject files
 *.o
