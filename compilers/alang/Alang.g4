@@ -14,43 +14,40 @@ block:
     BUD var_type ID (index_to_array)*                                       # BlockVarDec
     | ID (index_to_array)* ASSIGN expression                                # BlockAsgn
     | ID LPAR (expression (COMMA expression)*)? RPAR                        # BlockFuncCall
-    | CITAJCISLO ID (index_to_array*)                                       # BlockInputInt
-    | CITAJRIADOK ID (index_to_array)*                                      # BlockInputRow
-    | VYPIS expression                                                      # BlockOutputVar
-    | VYPISRIADOK expression                                                # BlockOutputRow
+    | VYPISCISLO expression                                                 # BlockOutputInt
+    | VYPISCISLOLN expression                                               # BlockOutputIntLn
+    | VYPISZNAKY expression                                                 # BlockOutputString
+    | VYPISZNAKYLN expression                                               # BlockOutputStringLn
     | VYPLUJ expression?                                                    # BlockReturn
-    | MAKAJ LPAR condition RPAR NEWLINE+ (block NEWLINE+)+ NEWLINE* JAKAM   # BlockLoop
-    | IF LPAR condition RPAR NEWLINE+ (block NEWLINE+)+ (ELSE NEWLINE+ (block NEWLINE+)*)? NEWLINE* FI # BlockIf
+    | MAKAJ LPAR expression RPAR NEWLINE+ (block NEWLINE+)+ NEWLINE* JAKAM  # BlockLoop
+    | IF LPAR expression RPAR NEWLINE+ (block NEWLINE+)+ (ELSE NEWLINE+ (else_block NEWLINE+)*)? NEWLINE* FI # BlockIf
+    | STACI                                                                 # BlockBreak
+    | PRESKOC                                                               # BlockContinue
     ;
+
+else_block: block;
 
 arguments: argtype ID (COMMA argtype ID)*;
 
 index_to_array: LSQUARE expression RSQUARE;
 index_to_global_array: LSQUARE INT RSQUARE;
 
-
-condition:
-    op=NOT condition                                                # CondNot
-    | condition op=AND condition                                    # CondAnd
-    | condition op=OR condition                                     # CondOr
-    | LPAR condition RPAR                                           # CondPar
-    | expression op=(EQ | LT | GT | LEQ | GEQ | NEQ) expression     # CondComp
-    ;
-
 global_expression: INT | STRING | TRUE | FALSE;
 
 expression:
-    op=(ADD | SUB) expression                       # ExpUna
-    | expression op=(DIV | MUL) expression          # ExpDivMul
-    | expression op=(ADD | SUB) expression          # ExpAddSub
-    | LPAR expression RPAR                          # ExpPar
-    | ID index_to_array+                            # ExpIdArray
-    | ID                                            # ExpId
-    | ID LPAR (expression (COMMA expression)*)? RPAR # ExpFuncCall
-    | INT                                           # ExpInt
-    | STRING                                        # ExpString
-    | TRUE                                          # ExpTrue
-    | FALSE                                         # ExpFalse
+    op=(ADD | SUB | NOT) expression                                 # ExpUna
+    | expression op=(DIV | MUL | MOD) expression                    # ExpDivMulMod
+    | expression op=(ADD | SUB) expression                          # ExpAddSub
+    | expression op=(EQ | LT | GT | LEQ | GEQ | NEQ) expression     # ExpComp
+    | expression op=(AND | OR) expression                           # ExpAndOr
+    | LPAR expression RPAR                                          # ExpPar
+    | ID index_to_array+                                            # ExpIdArray
+    | ID                                                            # ExpId
+    | ID LPAR (expression (COMMA expression)*)? RPAR                # ExpFuncCall
+    | INT                                                           # ExpInt
+    | STRING                                                        # ExpString
+    | TRUE                                                          # ExpTrue
+    | FALSE                                                         # ExpFalse
     ;
 
 argtype:
@@ -72,6 +69,8 @@ VYPLUJ: 'VYPLUJ';
 
 MAKAJ: 'MAKAJ';
 JAKAM: 'JAKAM';
+STACI: 'STACI';
+PRESKOC: 'PRESKOC';
 
 IF: 'IF';
 ELSE: 'ELSE';
@@ -79,8 +78,10 @@ FI: 'FI';
 
 CITAJCISLO: 'CITAJCISLO';
 CITAJRIADOK: 'CITAJRIADOK';
-VYPIS: 'VYPIS';
-VYPISRIADOK: 'VYPISRIADOK';
+VYPISCISLO: 'VYPISCISLO';
+VYPISCISLOLN: 'VYPISCISLOLN';
+VYPISZNAKY: 'VYPISZNAKY';
+VYPISZNAKYLN: 'VYPISZNAKYLN';
 
 CISLO: 'CISLO';
 ZNAK: 'ZNAK';
@@ -99,6 +100,7 @@ OR: 'OR';
 ADD: '+';
 SUB: '-';
 DIV: '/';
+MOD: '%';
 MUL: '*';
 ASSIGN: '=';
 

@@ -6,18 +6,18 @@ FUNKCIA CISLO MAIN()
     BUD CISLO length
     BUD CISLO i
 
-    CITAJCISLO length
+    length = citajcislo()
 
     i = 0
     MAKAJ (i < length)
-        CITAJCISLO inp
+        inp = citajcislo()
         IF (inp > maxnum)
             maxnum = inp
         FI
         i = i + 1
     JAKAM
 
-    VYPISRIADOK maxnum
+    vypiscisloln(maxnum)
 
     VYPLUJ 0
 HOTOVO

@@ -8,14 +8,14 @@ My name starts with `A` and that's why I decided to name it `alang`.
 ### Types of variables
 
 * `CISLO` - standard 32 bit integer (i.e. `12345` or `-5`)
-* `ZNAKY` - standard sequence of ASCII characters starting and ending with quote (i.e. `"test"`)
+* `ZNAK` - ascii character (i.e. `"x"`). If you need string, use `ZNAK[length]` (i.e. `"test"`)
 * `BOOL` - standard boolean value (`FALSE` or `TRUE`)
 
 #### Variable declaration and assignment
 
 * Declare as `BUD <type> <name>`
 * Assigning to variable `<name> = <value>` (if the variable has been declared yet)
-* Strings may contain everything except `"`
+* Strings may contain everything except `"` and they end with `\00`.
 * There is no fancy increment syntactic sugar, so you have to do it this way: `x = x + 1`
 
 ##### Arrays
@@ -37,8 +37,8 @@ All variables and arrays are available only in block they were defined in.
 * Logical and `<BOOL> AND <BOOL>` returns `BOOL`
 * Logical or `<BOOL> OR <BOOL>` returns `BOOL`
 * Negation `NOT <BOOL>` returns `BOOL`
-* String addition `<ZNAKY> + <ZNAKY>` returns `ZNAKY` (concatenated)
-* String and number addition `<ZNAKY> + CISLO` returns `ZNAKY` (concatenated)
+* String addition `<ZNAK> + <ZNAK>` returns `ZNAK` (concatenated)
+* String and number addition `<ZNAK> + CISLO` returns `ZNAK` (concatenated)
 * Comparisons
     - `<CISLO> < <CISLO>` returns `BOOL` (lower than)
     - `<CISLO> > <CISLO>` returns `BOOL` (greater than)
@@ -46,10 +46,10 @@ All variables and arrays are available only in block they were defined in.
     - `<CISLO> >= <CISLO>` returns `BOOL` (greater than or equals)
     - `<CISLO> == <CISLO>` returns `BOOL` (equals)
     - `<CISLO> != <CISLO>` returns `BOOL` (does not equal)
-    - `<ZNAKY> < <ZNAKY>` returns `BOOL` (lower than - lexicographically)
-    - `<ZNAKY> > <ZNAKY>` returns `BOOL` (greater than - lexicographically)
-    - `<ZNAKY> == <ZNAKY>` returns `BOOL` (equals)
-    - `<ZNAKY> != <ZNAKY>` returns `BOOL` (does not equal)
+    - `<ZNAK> < <ZNAK>` returns `BOOL` (lower than - lexicographically)
+    - `<ZNAK> > <ZNAK>` returns `BOOL` (greater than - lexicographically)
+    - `<ZNAK> == <ZNAK>` returns `BOOL` (equals)
+    - `<ZNAK> != <ZNAK>` returns `BOOL` (does not equal)
 
 In terms of priority, multiplication and division are of higher priority
 than addition and difference. Also, `AND` is of higher priority than `OR`.
@@ -59,8 +59,11 @@ the result multiplied by `c`.
 
 ### I/O
 
-* `CITAJCISLO <variable>` - read `CISLO` from stdin and save to variable
+* `<variable> = citajcislo()` - read `CISLO` from stdin and save to variable
 * `CITAJRIADOK <variable>` - read entire line as a string and save it to variable
+* `vypiscislo(x)` - write contents of `x` of type `CISLO` to stdout
+* `vypiscisloln(x)` - the same as `vypiscislo`, but with newline character
+
 * `VYPIS x` - writes contents of x to stdout
 * `VYPISRIADOK x` - writes contents of x to stdout with newline character
 
