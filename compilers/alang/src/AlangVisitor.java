@@ -64,20 +64,6 @@ public interface AlangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBlockFuncCall(AlangParser.BlockFuncCallContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code BlockOutputInt}
-	 * labeled alternative in {@link AlangParser#block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockOutputInt(AlangParser.BlockOutputIntContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code BlockOutputIntLn}
-	 * labeled alternative in {@link AlangParser#block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockOutputIntLn(AlangParser.BlockOutputIntLnContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code BlockOutputString}
 	 * labeled alternative in {@link AlangParser#block}.
 	 * @param ctx the parse tree

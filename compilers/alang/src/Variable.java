@@ -11,6 +11,8 @@ public class Variable {
     public boolean hasValue = false;
 
     public int arity = 0;
+    public boolean isLocalArray = false;
+    public boolean isGlobalArray = false;
     public ArrayList<Integer> levels = new ArrayList<Integer>();
 
     public Variable(String reg, String type, String llvmtype) {
@@ -21,6 +23,14 @@ public class Variable {
 
     public void setArity(int arity) {
         this.arity = arity;
+    }
+
+    public void setLocalArray() {
+        this.isLocalArray = true;
+    }
+
+    public void setGlobalArray() {
+        this.isGlobalArray = true;
     }
 
     public void addLevel(int num) {
@@ -56,15 +66,18 @@ public class Variable {
         return "";
     }
 
-    public String getLLVMDeclareType() {
-        if (this.arity == 0)
-            return this.llvmtype;
-
+    public String getLLVMDeclareGlobalFromIndex(int from) {
         String result = "[" +  this.levels.get(this.levels.size() - 1) + " x " + this.llvmtype + "]";
-        for (int i = arity - 2; i >=0; i--) {
+        for (int i = arity - 2; i >= from; i--) {
             result = "[" + this.levels.get(i) + " x " + result + "]";
         }
         return result;
+    }
+
+    public String getLLVMDeclareType() {
+        if (this.arity == 0)
+            return this.llvmtype;
+        return this.getLLVMDeclareGlobalFromIndex(0);
     }
 
     public String getGlobalDeclaration(ST template) {

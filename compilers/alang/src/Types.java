@@ -43,11 +43,11 @@ public class Types {
             String type2 = type.replaceAll("\\[\\]", "");
             int count = (type.length() - type2.length()) / 2;
             if (type2.equals(CISLO))
-                return LLVMCISLO + Types.pointers(count);
+                return LLVMCISLOPOINTER;
             else if (type2.equals(BOOL))
-                return LLVMBOOL + Types.pointers(count);
+                return LLVMBOOLPOINTER;
             else if (type2.equals(ZNAK))
-                return LLVMZNAK + Types.pointers(count);
+                return LLVMZNAKPOINTER;
         }
         return null;
     }

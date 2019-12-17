@@ -7,6 +7,13 @@ int citajcislo()
     return r;
 }
 
+char citajznak()
+{
+    char c;
+    scanf("%c", &c);
+    return c;
+}
+
 void vypiscislo(int a)
 {
     printf("%d", a);

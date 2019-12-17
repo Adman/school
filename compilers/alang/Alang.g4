@@ -14,8 +14,6 @@ block:
     BUD var_type ID (index_to_array)*                                       # BlockVarDec
     | ID (index_to_array)* ASSIGN expression                                # BlockAsgn
     | ID LPAR (expression (COMMA expression)*)? RPAR                        # BlockFuncCall
-    | VYPISCISLO expression                                                 # BlockOutputInt
-    | VYPISCISLOLN expression                                               # BlockOutputIntLn
     | VYPISZNAKY expression                                                 # BlockOutputString
     | VYPISZNAKYLN expression                                               # BlockOutputStringLn
     | VYPLUJ expression?                                                    # BlockReturn

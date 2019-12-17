@@ -34,6 +34,11 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         this.errorCount++;
     }
 
+    private void addError(String message) {
+        this.errors += "Error: " + message + "\n";
+        this.errorCount++;
+    }
+
     private String generateNewRegister(boolean global) {
         if (global)
             return String.format("@reg%d", this.registerIndex++);
@@ -126,10 +131,12 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         f2.addArgumentLLVMType(Types.LLVMCISLO);
         Function f3 = new Function("vypiscisloln", Types.LLVMVOID);
         f3.addArgumentLLVMType(Types.LLVMCISLO);
+        Function f4 = new Function("citajznak", Types.LLVMZNAK);
 
         this.functions.put("citajcislo", f1);
         this.functions.put("vypiscislo", f2);
         this.functions.put("vypiscisloln", f3);
+        this.functions.put("citajznak", f4);
 
         ST template = this.group.getInstanceOf("statements");
 
@@ -141,6 +148,15 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
                 template.add("code", code);
         }
         template.add("globals", this.generateGlobalVariables());
+
+        /* MAIN function errors */
+        if (!this.functions.containsKey("MAIN")) {
+            this.addError("MAIN function not found");
+            return new CodeFragment("");
+        } else if (this.functions.get("MAIN").args.size() != 0) {
+            this.addError("MAIN function takes no arguments");
+            return new CodeFragment("");
+        }
 
         return new CodeFragment(template.render());
     }
@@ -238,6 +254,10 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
         int arity = ctx.index_to_global_array().size();
         v.setArity(arity);
+        if (arity > 0) {
+            v.setGlobalArray();
+        }
+
         for (int i = 0; i < arity; i++) {
             v.addLevel(Integer.valueOf(ctx.index_to_global_array(i).INT().getText()));
         }
@@ -288,6 +308,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
         if (arity > 0) {
             /* alloca n-dimensional array */
+            v.setLocalArray();
             String prevreg = this.generateNewRegister(false);
             String newreg;
             result.addCode(String.format("%s = add i32 0, 1\n", prevreg));
@@ -304,6 +325,99 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         }
 
         return this.generateNewDeclaration(reg, v.getLLVMDeclareType());
+    }
+
+    /* finds pointer to the element at position array[a][b]... */
+    private CodeFragment getPointerToArray(Variable v, ArrayList<String> registers) {
+        CodeFragment result = new CodeFragment();
+        String prevLoadRegister = v.reg;
+        if (v.isGlobalArray) {
+            /* assignment to global array */
+            for (int i = 0; i < registers.size(); i++) {
+                ST template = this.group.getInstanceOf("indextoglobalarray");
+                String ptrRegister = this.generateNewRegister(false);
+
+                template.add("ptrregister", ptrRegister);
+                template.add("type", v.getLLVMDeclareGlobalFromIndex(i));
+                template.add("loadregister", prevLoadRegister);
+                template.add("exprreg", registers.get(i));
+
+                result.addCode(template.render() + "\n");
+                prevLoadRegister = ptrRegister;
+            }
+        } /*else {
+            String prevreg = "1";
+            for (int muls = 0; muls < registers.size(); muls++) {
+                String reg = this.generateNewRegister(false);
+                result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, registers.get(muls)));
+                prevreg = reg;
+            }
+
+            if (!v.isLocalArray) {
+                prevLoadRegister = this.generateNewRegister(false);
+                result.addCode(String.format("%s = load %s*, %s** %s\n", prevLoadRegister, v.llvmtype, v.llvmtype, v.reg));
+            }
+
+            String ptrRegister = this.generateNewRegister(false);
+
+            ST template = this.group.getInstanceOf("indextolocalarray");
+            template.add("ptrregister", ptrRegister);
+            template.add("type", v.llvmtype);
+            template.add("loadregister", prevLoadRegister);
+            template.add("exprreg", prevreg);
+
+            result.addCode(template.render() + "\n");
+
+            prevLoadRegister = ptrRegister;
+        }*/
+
+        //else if (!v.isLocalArray) {
+            /* array coming as argument to function */
+            /*for (int i = 0; i < registers.size(); i++) {
+                String loadRegister = this.generateNewRegister(false);
+                String ptrRegister = this.generateNewRegister(false);
+
+                String loadPointers = Types.pointers(registers.size() - i);
+                String ptrPointers = Types.pointers(registers.size() - (i + 1));
+
+                ST template = this.group.getInstanceOf("indextoarray");
+                template.add("loadregister", loadRegister);
+                template.add("type", v.llvmtype);
+                template.add("loadpointers", loadPointers);
+                template.add("prevloadregister", prevLoadRegister);
+                template.add("ptrregister", ptrRegister);
+                template.add("ptrpointers", ptrPointers);
+                template.add("exprreg", registers.get(i));
+
+                result.addCode(template.render() + "\n");
+
+                prevLoadRegister = ptrRegister;
+            }
+        }*/ else {
+            /* array defined in this function */
+            for (int i = 0; i < registers.size(); i++) {
+                String prevreg = "1";
+                for (int muls = i; muls < registers.size(); muls++) {
+                    String reg = this.generateNewRegister(false);
+                    result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, registers.get(muls)));
+                    prevreg = reg;
+                }
+
+                String ptrRegister = this.generateNewRegister(false);
+
+                ST template = this.group.getInstanceOf("indextolocalarray");
+                template.add("ptrregister", ptrRegister);
+                template.add("type", v.llvmtype);
+                template.add("loadregister", prevLoadRegister);
+                template.add("exprreg", prevreg);
+
+                result.addCode(template.render() + "\n");
+
+                prevLoadRegister = ptrRegister;
+            }
+        }
+        result.setRegister(prevLoadRegister);
+        return result;
     }
 
 	@Override
@@ -339,33 +453,14 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
                 registers.add(index.getRegister());
             }
 
-            String prevLoadRegister = v.reg;
-            for (int i = 0; i < registers.size(); i++) {
-                String loadRegister = this.generateNewRegister(false);
-                String ptrRegister = this.generateNewRegister(false);
-
-                String loadPointers = Types.pointers(registers.size() - i);
-                String ptrPointers = Types.pointers(registers.size() - (i + 1));
-
-                ST template = this.group.getInstanceOf("indextoarray");
-                template.add("loadregister", loadRegister);
-                template.add("type", v.llvmtype);
-                template.add("loadpointers", loadPointers);
-                template.add("prevloadregister", prevLoadRegister);
-                template.add("ptrregister", ptrRegister);
-                template.add("ptrpointers", ptrPointers);
-                template.add("exprreg", registers.get(i));
-
-                result.addCode(template.render() + "\n");
-
-                prevLoadRegister = ptrRegister;
-            }
+            CodeFragment ptr = this.getPointerToArray(v, registers);
+            result.addCode(ptr);
 
             ST store = this.group.getInstanceOf("store");
             store.add("type", v.llvmtype);
             store.add("reg", expr.getRegister());
-            store.add("where", prevLoadRegister);
-            result.addCode(store.render());
+            store.add("where", ptr.getRegister());
+            result.addCode(store.render() + "\n");
         }
 
         return result;
@@ -470,26 +565,6 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     }
 
     //@Override public T visitBlockInputRow(AlangParser.BlockInputRowContext ctx) { return visitChildren(ctx); }
-
-    private CodeFragment outputInt(CodeFragment expr, boolean newline) {
-        CodeFragment result = new CodeFragment();
-        result.addCode(expr);
-        result.addCode(String.format("call void @%s(i32 %s)\n", (newline ? "writeintln" : "writeint"),
-                                                                expr.getRegister()));
-        return result;
-    }
-
-    @Override
-    public CodeFragment visitBlockOutputInt(AlangParser.BlockOutputIntContext ctx) {
-        CodeFragment expr = visit(ctx.expression());
-        return this.outputInt(expr, false);
-    }
-
-	@Override
-    public CodeFragment visitBlockOutputIntLn(AlangParser.BlockOutputIntLnContext ctx) {
-        CodeFragment expr = visit(ctx.expression());
-        return this.outputInt(expr, true);
-    }
 
 	//@Override public T visitBlockOutputString(AlangParser.BlockOutputStringContext ctx) { return visitChildren(ctx); }
 
@@ -683,7 +758,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             registers.add(expr.getRegister());
         }
 
-        String prevLoadRegister = v.reg;
+/*        String prevLoadRegister = v.reg;
         for (int i = 0; i < registers.size(); i++) {
             String loadRegister = this.generateNewRegister(false);
             String ptrRegister = this.generateNewRegister(false);
@@ -703,10 +778,13 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             result.addCode(template.render() + "\n");
 
             prevLoadRegister = ptrRegister;
-        }
+        }*/
+
+        CodeFragment ptr = this.getPointerToArray(v, registers);
+        result.addCode(ptr);
 
         result.setRegister(this.generateNewRegister(false));
-        result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, prevLoadRegister));
+        result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, ptr.getRegister()));
         return result;
     }
 
@@ -750,14 +828,22 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         }
 
         CodeFragment result = new CodeFragment();
-        result.setRegister(this.generateNewRegister(false));
-        result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, v.reg));
+        if (v.arity > 0) {
+            /* if we are accessing the array */
+            result.setRegister(v.reg);
+        } else {
+            result.setRegister(this.generateNewRegister(false));
+            result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, v.reg));
+        }
 
         return result;
     }
 
     // TODO
-	//@Override public T visitExpString(AlangParser.ExpStringContext ctx) { return visitChildren(ctx); }
+	/*@Override
+    public CodeFragment visitExpString(AlangParser.ExpStringContext ctx) {
+        return visitChildren(ctx);
+    }*/
 
 	@Override
     public CodeFragment visitExpInt(AlangParser.ExpIntContext ctx) {

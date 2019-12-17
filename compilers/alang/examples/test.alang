@@ -1,0 +1,23 @@
+#FUNKCIA CISLO x(CISLO a, CISLO[][][] b)
+#    BUD CISLO c
+#    c = 2
+#    b[1][2][3] = c + 1
+#HOTOVO
+
+#FUNKCIA VOID f(CISLO i, CISLO j)
+
+#HOTOVO
+
+#FUNKCIA CISLO g(CISLO i)
+
+#HOTOVO
+
+FUNKCIA CISLO MAIN(CISLO a)
+    BUD CISLO a
+ 
+    a = citajcislo()
+ 
+    vypiscisloln(a)
+
+    VYPLUJ 0
+HOTOVO
