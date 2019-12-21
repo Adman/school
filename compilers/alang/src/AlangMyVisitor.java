@@ -9,6 +9,8 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     private Map<String, Function> functions = new HashMap<String, Function>();
     private Map<Function, Map<String, Variable>> vars = new HashMap<Function, Map<String, Variable>>();
 
+    private ArrayList<String> globalStrings = new ArrayList<String>();
+
     private Function scope = null;
 
     private String labelLoopCmp = null;
@@ -21,6 +23,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
     private int labelIndex = 0;
     private int registerIndex = 0;
+    private int stringIndex = 0;
 
     private String getCharPosition(ParserRuleContext ctx) {
         return String.format("%d:%d", ctx.getStart().getLine(),
@@ -47,6 +50,10 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
     private String generateNewLabel() {
         return String.format("L%d", this.labelIndex++);
+    }
+
+    private String generateNewString() {
+        return String.format("@.str.%d", this.stringIndex++);
     }
 
     private CodeFragment generateNewDeclaration(String reg, String type) {
@@ -80,9 +87,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     }
 
     private boolean functionExists(String name) {
-        if (this.functions.containsKey(name))
-            return true;
-        return false;
+        return this.functions.containsKey(name) && !name.equals("__writestring");
     }
 
     private Variable getVariable(String name) {
@@ -95,17 +100,21 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return this.functions.get(name);
     }
 
+    /* generate code for calling the function */
     private CodeFragment callFunc(List<AlangParser.ExpressionContext> expressions, Function f) {
         CodeFragment result = new CodeFragment();
 
         ST template;
-        if (f.returntype == Types.LLVMVOID) {
+        if (f.returntype.equals(Types.LLVMVOID)) {
             template = this.group.getInstanceOf("voidfunccall");
         } else {
             template = this.group.getInstanceOf("funccall");
             result.setRegister(this.generateNewRegister(false));
             template.add("reg", result.getRegister());
             template.add("type", f.returntype);
+            if (f.returntype.equals(Types.LLVMZNAK)){
+                result.setCharRegister();
+            }
         }
 
         template.add("name", f.name);
@@ -117,12 +126,32 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
                 template.add("args", f.args.get(i) + " " + expr.getRegister());
             else
                 template.add("args", ", " + f.args.get(i) + " " + expr.getRegister());
+
+            String exprtext = expressions.get(i).getText();
+            if (this.globals.containsKey(exprtext)) {
+                this.addError(expressions.get(i), exprtext, "Cannot pass global array to function");
+                return new CodeFragment("");
+            }
+
+            /* if we are passing whole array to function, pass also its dimensions */
+            if (this.vars.get(this.scope).containsKey(exprtext)) {
+                Variable v = this.vars.get(this.scope).get(exprtext);
+                for (int j = 0; j < v.levelregs.size(); j++) {
+                    String finalreg = v.levelregs.get(j);
+                    if (!v.isLocalArray) {
+                        finalreg = this.generateNewRegister(false);
+                        result.addCode(String.format("%s = load i32, i32* %s\n", finalreg, v.levelregs.get(j)));
+                    }
+                    template.add("args", ", i32 " + finalreg);
+                }
+            }
         }
 
         result.addCode(template.render() + "\n");
         return result;
     }
 
+    /* Main block - read statements one by one and add code to main template */
     @Override
     public CodeFragment visitStatements(AlangParser.StatementsContext ctx) {
         /* add library functions */
@@ -132,11 +161,17 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         Function f3 = new Function("vypiscisloln", Types.LLVMVOID);
         f3.addArgumentLLVMType(Types.LLVMCISLO);
         Function f4 = new Function("citajznak", Types.LLVMZNAK);
+        Function f5 = new Function("vypisznak", Types.LLVMVOID);
+        f5.addArgumentLLVMType(Types.LLVMZNAK);
+        Function f6 = new Function("vypisznakln", Types.LLVMVOID);
+        f6.addArgumentLLVMType(Types.LLVMZNAK);
 
         this.functions.put("citajcislo", f1);
         this.functions.put("vypiscislo", f2);
         this.functions.put("vypiscisloln", f3);
         this.functions.put("citajznak", f4);
+        this.functions.put("vypisznak", f5);
+        this.functions.put("vypisznakln", f6);
 
         ST template = this.group.getInstanceOf("statements");
 
@@ -149,16 +184,35 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         }
         template.add("globals", this.generateGlobalVariables());
 
+        /* generate global strings */
+        for (int i = 0; i < this.globalStrings.size(); i++) {
+            template.add("globals", this.globalStrings.get(i) + "\n");
+        }
+
         /* MAIN function errors */
         if (!this.functions.containsKey("MAIN")) {
             this.addError("MAIN function not found");
             return new CodeFragment("");
         } else if (this.functions.get("MAIN").args.size() != 0) {
-            this.addError("MAIN function takes no arguments");
+            this.addError("MAIN function cannot take arguments");
             return new CodeFragment("");
         }
 
         return new CodeFragment(template.render());
+    }
+
+    /* generate arguments for function definition */
+    private void addFuncArgument(ST template, String reg, String id, String argtype) {
+        ST alloca = this.group.getInstanceOf("localdeclare");
+        alloca.add("reg", reg);
+        alloca.add("type", argtype);
+        template.add("allocaargs", alloca.render() + "\n");
+
+        ST store = this.group.getInstanceOf("store");
+        store.add("type", argtype);
+        store.add("reg", id);
+        store.add("where", reg);
+        template.add("storeargs", store.render() + "\n");
     }
 
     @Override
@@ -187,7 +241,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         this.vars.put(f, new HashMap<String, Variable>());
 
         try {
-            /* visit all indices and store the result */
+            /* visit all arguments and store them as local variables in function */
             for (int i = 0; i < ctx.arguments().ID().size(); i++) {
                 AlangParser.ArgumentsContext argctx = ctx.arguments();
                 String id = argctx.ID(i).getText();
@@ -208,16 +262,18 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
                 template.add("args", argtype + " %" + id);
 
-                ST alloca = this.group.getInstanceOf("localdeclare");
-                alloca.add("reg", v.reg);
-                alloca.add("type", argtype);
-                template.add("allocaargs", alloca.render() + "\n");
+                this.addFuncArgument(template, v.reg, "%" + id, argtype);
 
-                ST store = this.group.getInstanceOf("store");
-                store.add("type", argtype);
-                store.add("reg", "%" + id);
-                store.add("where", v.reg);
-                template.add("storeargs", store.render() + "\n");
+                /* if it is array argument, generate dimension sizes arguments*/
+                if (v.arity > 0) {
+                    for (int j = 0; j < v.arity; j++) {
+                        String dimid = this.generateNewRegister(false);
+                        String dimreg = this.generateNewRegister(false);
+                        v.addLevelReg(dimreg);
+                        template.add("args", ", i32 " + dimid);
+                        this.addFuncArgument(template, dimreg, dimid, "i32");
+                    }
+                }
             }
         } catch (Exception e) {}
 
@@ -237,9 +293,9 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return new CodeFragment(template.render() + "\n");
     }
 
+    /* declaration of global variable */
     @Override
     public CodeFragment visitVarDecStat(AlangParser.VarDecStatContext ctx) {
-        /* this is global variable */
         String name = ctx.ID().getText();
         if (this.variableExists(name)) {
             this.addError(ctx, name, "Variable already declared");
@@ -267,9 +323,9 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return new CodeFragment("");
     }
 
+    /* assignment to global variable - only constant value */
     @Override
     public CodeFragment visitAssignmentStat(AlangParser.AssignmentStatContext ctx) {
-        /* assignment to global variable */
         String name = ctx.ID().getText();
         if (!variableExists(name)) {
             this.addError(ctx, name, "Assignment to undeclared variable");
@@ -283,7 +339,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return new CodeFragment("");
     }
 
-
+    /* local variable declaration */
     @Override
     public CodeFragment visitBlockVarDec(AlangParser.BlockVarDecContext ctx) {
         String name = ctx.ID().getText();
@@ -305,9 +361,11 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
         CodeFragment result = new CodeFragment();
         result.setRegister(reg);
+        if (llvmvartype.equals(Types.LLVMZNAK))
+            result.setCharRegister();
 
         if (arity > 0) {
-            /* alloca n-dimensional array */
+            /* alloca n-dimensional array[a1]...[an] on stack with size a1*a2*...*an */
             v.setLocalArray();
             String prevreg = this.generateNewRegister(false);
             String newreg;
@@ -315,6 +373,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             for (int i = 0; i < arity; i++) {
                 CodeFragment exp = visit(ctx.index_to_array(i).expression());
                 result.addCode(exp);
+                v.addLevelReg(exp.getRegister());
 
                 newreg = this.generateNewRegister(false);
                 result.addCode(String.format("%s = mul i32 %s, %s\n", newreg, prevreg, exp.getRegister()));
@@ -345,62 +404,32 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
                 result.addCode(template.render() + "\n");
                 prevLoadRegister = ptrRegister;
             }
-        } /*else {
-            String prevreg = "1";
-            for (int muls = 0; muls < registers.size(); muls++) {
-                String reg = this.generateNewRegister(false);
-                result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, registers.get(muls)));
-                prevreg = reg;
-            }
-
-            if (!v.isLocalArray) {
-                prevLoadRegister = this.generateNewRegister(false);
-                result.addCode(String.format("%s = load %s*, %s** %s\n", prevLoadRegister, v.llvmtype, v.llvmtype, v.reg));
-            }
-
-            String ptrRegister = this.generateNewRegister(false);
-
-            ST template = this.group.getInstanceOf("indextolocalarray");
-            template.add("ptrregister", ptrRegister);
-            template.add("type", v.llvmtype);
-            template.add("loadregister", prevLoadRegister);
-            template.add("exprreg", prevreg);
-
-            result.addCode(template.render() + "\n");
-
-            prevLoadRegister = ptrRegister;
-        }*/
-
-        //else if (!v.isLocalArray) {
-            /* array coming as argument to function */
-            /*for (int i = 0; i < registers.size(); i++) {
-                String loadRegister = this.generateNewRegister(false);
-                String ptrRegister = this.generateNewRegister(false);
-
-                String loadPointers = Types.pointers(registers.size() - i);
-                String ptrPointers = Types.pointers(registers.size() - (i + 1));
-
-                ST template = this.group.getInstanceOf("indextoarray");
-                template.add("loadregister", loadRegister);
-                template.add("type", v.llvmtype);
-                template.add("loadpointers", loadPointers);
-                template.add("prevloadregister", prevLoadRegister);
-                template.add("ptrregister", ptrRegister);
-                template.add("ptrpointers", ptrPointers);
-                template.add("exprreg", registers.get(i));
-
-                result.addCode(template.render() + "\n");
-
-                prevLoadRegister = ptrRegister;
-            }
-        }*/ else {
-            /* array defined in this function */
+        } else {
+            /* array defined in this function (or array as a function parameter) */
             for (int i = 0; i < registers.size(); i++) {
                 String prevreg = "1";
-                for (int muls = i; muls < registers.size(); muls++) {
+                for (int muls = i+1; muls < v.levelregs.size(); muls++) {
+
+                    /* if the array we are accessing is function's parameter, we need to load dimensions */
+                    String loaddimensionreg = v.levelregs.get(muls);
+                    if (!v.isLocalArray) {
+                        loaddimensionreg = this.generateNewRegister(false);
+                        result.addCode(String.format("%s = load i32, i32* %s\n", loaddimensionreg, v.levelregs.get(muls)));
+                    }
+
                     String reg = this.generateNewRegister(false);
-                    result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, registers.get(muls)));
+                    result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, loaddimensionreg));
                     prevreg = reg;
+                }
+
+                /* generate final jump */
+                String reg = this.generateNewRegister(false);
+                result.addCode(String.format("%s = mul i32 %s, %s\n", reg, prevreg, registers.get(i)));
+                prevreg = reg;
+
+                if (!v.isLocalArray && i == 0) {
+                    prevLoadRegister = this.generateNewRegister(false);
+                    result.addCode(String.format("%s = load %s*, %s** %s\n", prevLoadRegister, v.llvmtype, v.llvmtype, v.reg));
                 }
 
                 String ptrRegister = this.generateNewRegister(false);
@@ -417,9 +446,12 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             }
         }
         result.setRegister(prevLoadRegister);
+        if (v.llvmtype.equals(Types.LLVMZNAK))
+            result.setCharRegister();
         return result;
     }
 
+    /* assign value to local variable */
 	@Override
     public CodeFragment visitBlockAsgn(AlangParser.BlockAsgnContext ctx) {
         String name = ctx.ID().getText();
@@ -437,14 +469,18 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         v.setHasValue();
 
         int arity = ctx.index_to_array().size();
-        if (arity == 0) {
-            result.addCode(String.format("store %s %s, %s* %s\n", v.llvmtype, expr.getRegister(), v.llvmtype, v.reg));
-        } else {
+
+        if (v.arity > 0) {
             if (!checkArityAssignment(v, arity)) {
                 this.addError(ctx, name, "Bad assignment to array");
                 return new CodeFragment("");
             }
+        }
 
+        if (arity == 0) {
+            result.addCode(String.format("store %s %s, %s* %s\n", v.llvmtype, expr.getRegister(), v.llvmtype, v.reg));
+        } else {
+            /* in case we assign to array */
             int pointers = ctx.index_to_array().size();
             ArrayList<String> registers = new ArrayList<String>();
             for (int i = 0; i < arity; i++) {
@@ -564,11 +600,60 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return this.callFunc(ctx.expression(), f);
     }
 
-    //@Override public T visitBlockInputRow(AlangParser.BlockInputRowContext ctx) { return visitChildren(ctx); }
+	@Override
+    public CodeFragment visitBlockOutputString(AlangParser.BlockOutputStringContext ctx) {
+        String message = ctx.STRING().getText().replaceAll("\"", ""); // message with quotes
+        ST template = this.group.getInstanceOf("stringconstdeclare");
 
-	//@Override public T visitBlockOutputString(AlangParser.BlockOutputStringContext ctx) { return visitChildren(ctx); }
+        StringBuilder str = new StringBuilder();
+        int length = 0;
+        for (int i = 0; i < message.length(); i++) {
+            char c = message.charAt(i);
+            if (c == '\\') {
+                if (i == message.length() - 1) {
+                    this.addError(ctx, message, "Cannot escape null character");
+                    return new CodeFragment("");
+                }
+                i++;
+                c = message.charAt(i);
+                String hex;
+                /* map escaped characters to appropriate hex value */
+                switch (c) {
+                    case '0': hex = "\\00"; break;
+                    case 'n': hex = "\\0A"; break;
+                    case 'r': hex = "\\0D"; break;
+                    case 'b': hex = "\\08"; break;
+                    case 'a': hex = "\\07"; break;
+                    case 'f': hex = "\\0C"; break;
+                    case 't': hex = "\\09"; break;
+                    case 'v': hex = "\\0B"; break;
+                    case '\\': hex = "\\5C"; break;
+                    default:
+                        this.addError(ctx, message, "Unknown character");
+                        return new CodeFragment("");
+                }
+                str.append(hex);
+            } else {
+                str.append(c);
+            }
+            length++;
+        }
 
-	//@Override public T visitBlockOutputStringLn(AlangParser.BlockOutputStringLnContext ctx) { return visitChildren(ctx); }
+        String finalstring = str.toString();
+        length++; // \00 character in the end
+        finalstring = finalstring + "\\00";
+        String reg = this.generateNewString();
+
+        template.add("reg", reg);
+        template.add("length", length);
+        template.add("string", finalstring);
+        this.globalStrings.add(template.render());
+
+        ST funccall = this.group.getInstanceOf("voidfunccall");
+        funccall.add("name", "__writestring");
+        funccall.add("args", String.format("i8* getelementptr inbounds ([%s x i8], [%s x i8]* %s, i32 0, i32 0)", length, length, reg));
+        return new CodeFragment(funccall.render() + "\n");
+    }
 
 	@Override
     public CodeFragment visitBlockReturn(AlangParser.BlockReturnContext ctx) {
@@ -585,6 +670,16 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
                 return new CodeFragment("");
             }
             CodeFragment expr = visit(ctx.expression());
+
+            /* check if we are returning bad type */
+            if (expr.getIsCharRegister() && !this.scope.returntype.equals(Types.LLVMZNAK)) {
+                this.addError(ctx, "VYPLUJ", "Cannot return non ZNAK value from function with ZNAK signature");
+                return new CodeFragment("");
+            } else if (!expr.getIsCharRegister() && this.scope.returntype.equals(Types.LLVMZNAK)) {
+                this.addError(ctx, "VYPLUJ", "Cannot return ZNAK value from function with non ZNAK signature");
+                return new CodeFragment("");
+            }
+
             result.addCode(expr);
             result.addCode(String.format("ret %s %s\n", this.scope.returntype, expr.getRegister()));
         }
@@ -643,6 +738,18 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         result.addCode(exprL);
         result.addCode(exprR);
 
+        /* if we are comparing characters we have to extend their types to i32 */
+        if (exprL.getIsCharRegister()) {
+            String extreg = this.generateNewRegister(false);
+            result.addCode(String.format("%s = sext i8 %s to i32\n", extreg, exprL.getRegister()));
+            exprL.setRegister(extreg);
+        }
+        if (exprR.getIsCharRegister()) {
+            String extreg = this.generateNewRegister(false);
+            result.addCode(String.format("%s = sext i8 %s to i32\n", extreg, exprR.getRegister()));
+            exprR.setRegister(extreg);
+        }
+
         String op = "";
         switch (ctx.op.getType()) {
             case AlangParser.EQ: op = "eq"; break;
@@ -669,6 +776,11 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     public CodeFragment visitExpUna(AlangParser.ExpUnaContext ctx) {
         CodeFragment expr = visit(ctx.expression());
 
+        if (expr.getIsCharRegister()) {
+            this.addError(ctx, ctx.op.getText(), "Cannot use unary operator on ZNAK type");
+            return new CodeFragment("");
+        }
+
         if (ctx.op.getType() == AlangParser.ADD) {
             return expr;
         }
@@ -693,6 +805,11 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         CodeFragment exprL = visit(ctx.expression(0));
         CodeFragment exprR = visit(ctx.expression(1));
 
+        if (exprL.getIsCharRegister() || exprR.getIsCharRegister()) {
+            this.addError(ctx, ctx.op.getText(), "Cannot use operator on ZNAK type");
+            return new CodeFragment("");
+        }
+
         String inst = "";
         if (ctx.op.getType() == AlangParser.MUL)
             inst = "mul";
@@ -709,6 +826,11 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         CodeFragment exprL = visit(ctx.expression(0));
         CodeFragment exprR = visit(ctx.expression(1));
 
+        if (exprL.getIsCharRegister() || exprR.getIsCharRegister()) {
+            this.addError(ctx, ctx.op.getText(), "Cannot use operator on ZNAK type");
+            return new CodeFragment("");
+        }
+
         String inst = "";
         if (ctx.op.getType() == AlangParser.ADD)
             inst = "add";
@@ -722,7 +844,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     public CodeFragment visitExpFalse(AlangParser.ExpFalseContext ctx) {
         CodeFragment result = new CodeFragment();
         result.setRegister(this.generateNewRegister(false));
-        result.addCode(String.format("%s = add i8 0, 0\n", result.getRegister()));
+        result.addCode(String.format("%s = add i32 0, 0\n", result.getRegister()));
         return result;
     }
 
@@ -730,7 +852,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     public CodeFragment visitExpTrue(AlangParser.ExpTrueContext ctx) {
         CodeFragment result = new CodeFragment();
         result.setRegister(this.generateNewRegister(false));
-        result.addCode(String.format("%s = add i8 0, 1\n", result.getRegister()));
+        result.addCode(String.format("%s = add i32 0, 1\n", result.getRegister()));
         return result;
     }
 
@@ -758,33 +880,15 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             registers.add(expr.getRegister());
         }
 
-/*        String prevLoadRegister = v.reg;
-        for (int i = 0; i < registers.size(); i++) {
-            String loadRegister = this.generateNewRegister(false);
-            String ptrRegister = this.generateNewRegister(false);
-
-            String loadPointers = Types.pointers(registers.size() - i);
-            String ptrPointers = Types.pointers(registers.size() - (i + 1));
-
-            ST template = this.group.getInstanceOf("indextoarray");
-            template.add("loadregister", loadRegister);
-            template.add("type", v.llvmtype);
-            template.add("loadpointers", loadPointers);
-            template.add("prevloadregister", prevLoadRegister);
-            template.add("ptrregister", ptrRegister);
-            template.add("ptrpointers", ptrPointers);
-            template.add("exprreg", registers.get(i));
-
-            result.addCode(template.render() + "\n");
-
-            prevLoadRegister = ptrRegister;
-        }*/
-
         CodeFragment ptr = this.getPointerToArray(v, registers);
         result.addCode(ptr);
 
         result.setRegister(this.generateNewRegister(false));
         result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, ptr.getRegister()));
+        if (v.llvmtype.equals(Types.LLVMZNAK)) {
+            result.setCharRegister();
+        }
+
         return result;
     }
 
@@ -799,7 +903,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
         Function f = getFunction(name);
 
-        if (f.returntype == Types.LLVMVOID) {
+        if (f.returntype.equals(Types.LLVMVOID)) {
             this.addError(ctx, name, "Use of void function as expression");
             return new CodeFragment("");
         }
@@ -822,7 +926,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         }
 
         Variable v = this.getVariable(name);
-        if (!v.hasValue) {
+        if (!v.hasValue && v.arity == 0) {
             this.addError(ctx, name, "Use of variable with no value");
             return new CodeFragment("");
         }
@@ -831,19 +935,55 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         if (v.arity > 0) {
             /* if we are accessing the array */
             result.setRegister(v.reg);
+            /* if we are passing array already passed to function, we have to dereference its pointer */
+            if (!v.isLocalArray) {
+                result.setRegister(this.generateNewRegister(false));
+                result.addCode(String.format("%s = load %s*, %s** %s\n", result.getRegister(), v.llvmtype, v.llvmtype, v.reg));
+            }
         } else {
             result.setRegister(this.generateNewRegister(false));
             result.addCode(String.format("%s = load %s, %s* %s\n", result.getRegister(), v.llvmtype, v.llvmtype, v.reg));
+            if (v.llvmtype.equals(Types.LLVMZNAK)) {
+                result.setCharRegister();
+            }
         }
 
         return result;
     }
 
-    // TODO
-	/*@Override
-    public CodeFragment visitExpString(AlangParser.ExpStringContext ctx) {
-        return visitChildren(ctx);
-    }*/
+	@Override
+    public CodeFragment visitExpChar(AlangParser.ExpCharContext ctx) {
+        String str = ctx.STRING().getText().replaceAll("\"", "");
+        int ascii = 0;
+        if (str.length() > 2 || (str.length() == 2 && str.charAt(0) != '\\')) {
+            this.addError(ctx, str, "Cannot use more characters");
+            return new CodeFragment("");
+        } else if (str.length() == 2) {
+            str = str.replace("\\", "");
+            switch (str) {
+                case "0": ascii = 0; break;
+                case "n": ascii = 10; break;
+                case "r": ascii = 13; break;
+                case "b": ascii = 8; break;
+                case "a": ascii = 7; break;
+                case "f": ascii = 12; break;
+                case "t": ascii = 9; break;
+                case "v": ascii = 11; break;
+                case "\\": ascii = 92; break;
+                default:
+                    this.addError(ctx, str, "Unknown character");
+                    return new CodeFragment("");
+            }
+        } else {
+            ascii = (int) str.charAt(0);
+        }
+        CodeFragment result = new CodeFragment();
+        result.setRegister(this.generateNewRegister(false));
+        result.setCharRegister();
+        result.addCode(String.format("%s = add i8 0, %s\n", result.getRegister(), ascii));
+
+        return result;
+    }
 
 	@Override
     public CodeFragment visitExpInt(AlangParser.ExpIntContext ctx) {

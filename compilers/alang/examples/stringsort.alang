@@ -1,74 +1,134 @@
-FUNKCIA VOID merge(ZNAKY[] strings, CISLO low, CISLO mid, CISLO high)
+FUNKCIA VOID copyarr(ZNAK[][] from, ZNAK[][] to, CISLO fromrow, CISLO torow)
+    BUD CISLO i
+    i = 0
+    MAKAJ (from[fromrow][i] != "\0")
+        to[torow][i] = from[fromrow][i]
+        i = i + 1
+    JAKAM
+    to[torow][i] = "\0"
+HOTOVO
+
+# Return TRUE if string[a] <= string[b] lexicographically
+FUNKCIA BOOL compare(ZNAK[][] strings, CISLO a, CISLO b)
+    BUD CISLO i
+
+    i = 0
+    MAKAJ (TRUE)
+        IF (strings[a][i] == "\0")
+            VYPLUJ TRUE
+        FI
+
+        IF (strings[b][i] == "\0")
+            VYPLUJ FALSE
+        FI
+
+        IF (strings[a][i] < strings[b][i])
+            VYPLUJ TRUE
+        FI
+
+        IF (strings[a][i] > strings[b][i])
+            VYPLUJ FALSE
+        FI
+        i = i + 1
+    JAKAM
+    VYPLUJ TRUE
+HOTOVO
+
+FUNKCIA VOID merge(ZNAK[][] strings, CISLO maxlength, CISLO low, CISLO mid, CISLO high)
     BUD CISLO first
     BUD CISLO second
     BUD CISLO i
-    BUD ZNAKY help[high - low + 1]
+    BUD ZNAK help[high - low + 1][maxlength]
 
     first = low
-    seconds = mid + 1
+    second = mid + 1
     i = 0
     MAKAJ (first <= mid AND second <= high)
-        IF (strings[first] <= strings[second])
-            help[i] = strings[first]
+        IF (compare(strings, first, second))
+            copyarr(strings, help, first, i)
             first = first + 1
         ELSE
-            help[i] = strings[second]
+            copyarr(strings, help, second, i)
             second = second + 1
         FI
         i = i + 1
     JAKAM
 
     MAKAJ (first <= mid)
-        help[i] = strings[first]
+        copyarr(strings, help, first, i)
         first = first + 1
         i = i + 1
     JAKAM
 
     MAKAJ (second <= high)
-        help[i] = strings[second]
-        second = seconds + 1
+        copyarr(strings, help, second, i)
+        second = second + 1
         i = i + 1
     JAKAM
 
     # copy from helper to strings array
     i = 0
     MAKAJ (i <= high)
-        strings[i] = help[i]
+        copyarr(help, strings, i, low)
+        low = low + 1
         i = i + 1
     JAKAM
 HOTOVO
 
-FUNKCIA VOID sort(ZNAKY[] strings, CISLO low, CISLO high)
+FUNKCIA VOID sort(ZNAK[][] strings, CISLO maxlength, CISLO low, CISLO high)
     BUD CISLO mid
 
     IF (low < high)
         mid = (low + high) / 2
 
-        sort(strings, low, mid)
-        sort(strings, mid+1, high)
-        merge(strings, low, mid, high)
+        sort(strings, maxlength, low, mid)
+        sort(strings, maxlength, mid+1, high)
+        merge(strings, maxlength, low, mid, high)
     FI
 HOTOVO 
 
 FUNKCIA CISLO MAIN()
     BUD CISLO length
+    BUD CISLO maxlength
     BUD CISLO i
+    BUD CISLO j
+    BUD ZNAK c
 
-    CITAJCISLO length
+    length = citajcislo()
+    maxlength = citajcislo()
+    maxlength = maxlength + 1    # +1 for \0
 
-    BUD ZNAKY str[length]
+    BUD ZNAK str[length][maxlength]
 
     i = 0
+    c = citajznak() # flush remaining newline character
     MAKAJ (i < length)
-        CITAJRIADOK str[i]
+        j = 0
+        MAKAJ (j < maxlength)
+            c = citajznak()
+            IF (c == "\n")
+                STACI
+            FI
+            str[i][j] = c
+            j = j + 1
+        JAKAM
+        str[i][j] = "\0"
         i = i + 1
     JAKAM
 
-    mergesort(str, 0, length-1)
+    sort(str, maxlength, 0, length-1)
 
     i = 0
     MAKAJ (i < length)
-        VYPISRIADOK str[i]
+        j = 0
+        MAKAJ (j < maxlength)
+            IF (str[i][j] == "\0")
+                VYPISZNAKY "\n"
+                STACI
+            FI
+            vypisznak(str[i][j])
+            j = j + 1
+        JAKAM
         i = i + 1
     JAKAM
 

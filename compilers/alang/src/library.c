@@ -14,22 +14,27 @@ char citajznak()
     return c;
 }
 
-void vypiscislo(int a)
+void vypiscislo(int i)
 {
-    printf("%d", a);
+    printf("%d", i);
 }
 
-void vypiscisloln(int a)
+void vypiscisloln(int i)
 {
-    printf("%d\n", a);
+    printf("%d\n", i);
 }
 
-/*void writestring(char *a)
+void vypisznak(char c)
+{
+    printf("%c", c);
+}
+
+void vypisznakln(char c)
+{
+    printf("%c\n", c);
+}
+
+void __writestring(char *a)
 {
     printf("%s", a);
 }
-
-void writestringln(char *a)
-{
-    printf("%s\n", a);
-}*/

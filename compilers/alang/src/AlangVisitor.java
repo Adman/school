@@ -71,13 +71,6 @@ public interface AlangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBlockOutputString(AlangParser.BlockOutputStringContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code BlockOutputStringLn}
-	 * labeled alternative in {@link AlangParser#block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlockOutputStringLn(AlangParser.BlockOutputStringLnContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code BlockReturn}
 	 * labeled alternative in {@link AlangParser#block}.
 	 * @param ctx the parse tree
@@ -171,6 +164,13 @@ public interface AlangVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpFuncCall(AlangParser.ExpFuncCallContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code ExpChar}
+	 * labeled alternative in {@link AlangParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpChar(AlangParser.ExpCharContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code ExpTrue}
 	 * labeled alternative in {@link AlangParser#expression}.
 	 * @param ctx the parse tree
@@ -212,13 +212,6 @@ public interface AlangVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExpId(AlangParser.ExpIdContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code ExpString}
-	 * labeled alternative in {@link AlangParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpString(AlangParser.ExpStringContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ExpAndOr}
 	 * labeled alternative in {@link AlangParser#expression}.

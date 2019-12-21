@@ -8,14 +8,15 @@ My name starts with `A` and that's why I decided to name it `alang`.
 ### Types of variables
 
 * `CISLO` - standard 32 bit integer (i.e. `12345` or `-5`)
-* `ZNAK` - ascii character (i.e. `"x"`). If you need string, use `ZNAK[length]` (i.e. `"test"`)
+* `ZNAK` - ascii character (i.e. `"x"`). If you need string, use `ZNAK[length]` with `\0` in the end.
 * `BOOL` - standard boolean value (`FALSE` or `TRUE`)
 
 #### Variable declaration and assignment
 
 * Declare as `BUD <type> <name>`
 * Assigning to variable `<name> = <value>` (if the variable has been declared yet)
-* Strings may contain everything except `"` and they end with `\00`.
+* Strings may contain everything except `"` and `\"` and they end with `\00`. But you can
+  only assign one character at the time.
 * There is no fancy increment syntactic sugar, so you have to do it this way: `x = x + 1`
 
 ##### Arrays
@@ -60,12 +61,11 @@ the result multiplied by `c`.
 ### I/O
 
 * `<variable> = citajcislo()` - read `CISLO` from stdin and save to variable
-* `CITAJRIADOK <variable>` - read entire line as a string and save it to variable
 * `vypiscislo(x)` - write contents of `x` of type `CISLO` to stdout
 * `vypiscisloln(x)` - the same as `vypiscislo`, but with newline character
-
-* `VYPIS x` - writes contents of x to stdout
-* `VYPISRIADOK x` - writes contents of x to stdout with newline character
+* `<variable> = citajznak()` - read `ZNAK` from stdin and save to variable
+* `vypisznak(x)` - write contents of `x` of type `ZNAK` to stdout
+* `vypisznakln(x)` - write contents of `x` of type `ZNAK` to stdout
 
 ### Conditions
 

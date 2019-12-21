@@ -2,6 +2,7 @@ public class CodeFragment {
 
      private String code;
      private String register;
+     private boolean isCharRegister = false;
 
      public CodeFragment() {
          this.code = "";
@@ -39,4 +40,11 @@ public class CodeFragment {
          return this.register;
      }
 
+     public void setCharRegister() {
+         this.isCharRegister = true;
+     }
+
+     public boolean getIsCharRegister() {
+         return this.isCharRegister;
+     }
 }

@@ -51,12 +51,12 @@ FUNKCIA CISLO MAIN()
     MAKAJ (i < length)
         j = 0
         MAKAJ (j < length)
-            vypiscisloln(w[i][j])
-            #vypisznak(" ")
+            vypiscislo(w[i][j])
+            vypisznak(" ")
             j = j + 1
         JAKAM
         i = i + 1
-        #VYPIS "\n"
+        VYPISZNAKY "\n"
     JAKAM
 
     VYPLUJ 0

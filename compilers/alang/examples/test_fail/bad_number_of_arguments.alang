@@ -1,0 +1,10 @@
+FUNKCIA VOID f(CISLO c)
+
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO a
+    a = 10
+    f(a, a)
+    f()
+HOTOVO

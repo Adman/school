@@ -1,0 +1,10 @@
+FUNKCIA CISLO f(CISLO x)
+
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO x
+    x = a + 5
+
+    f(b)
+HOTOVO

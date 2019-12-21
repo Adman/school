@@ -1,0 +1,4 @@
+FUNKCIA CISLO MAIN()
+    VYPISZNAKY "test\" # cannot escape nothing
+    VYPISZNAKY "aaa\xbbb" # unknown escape character
+HOTOVO

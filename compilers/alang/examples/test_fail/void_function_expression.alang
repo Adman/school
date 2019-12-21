@@ -1,0 +1,8 @@
+FUNKCIA VOID f()
+
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO i
+    i = f()
+HOTOVO

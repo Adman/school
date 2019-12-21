@@ -43,7 +43,7 @@ public class Compiler {
 
          AlangMyVisitor visitor = new AlangMyVisitor();
 
-         //try {
+         try {
              CodeFragment code = visitor.visit(tree);
              if (visitor.errorCount > 0) {
                  System.err.print(visitor.errors);
@@ -51,9 +51,8 @@ public class Compiler {
              } else {
                  ps.print(code.toString());
              }
-         //}
-         //catch (Exception e) {
-         //     System.err.print(e.getMessage());
-         //}
+         } catch (Exception e) {
+              System.err.print(e.getMessage());
+         }
      }
 }

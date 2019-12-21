@@ -1,0 +1,5 @@
+FUNKCIA CISLO MAIN()
+    BUD ZNAK c
+    c = "ab"
+    c = "\x"
+HOTOVO

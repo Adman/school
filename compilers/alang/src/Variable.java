@@ -11,9 +11,10 @@ public class Variable {
     public boolean hasValue = false;
 
     public int arity = 0;
-    public boolean isLocalArray = false;
     public boolean isGlobalArray = false;
+    public boolean isLocalArray = false;
     public ArrayList<Integer> levels = new ArrayList<Integer>();
+    public ArrayList<String> levelregs = new ArrayList<String>();
 
     public Variable(String reg, String type, String llvmtype) {
         this.reg = reg;
@@ -25,16 +26,20 @@ public class Variable {
         this.arity = arity;
     }
 
-    public void setLocalArray() {
-        this.isLocalArray = true;
-    }
-
     public void setGlobalArray() {
         this.isGlobalArray = true;
     }
 
+    public void setLocalArray() {
+        this.isLocalArray = true;
+    }
+
     public void addLevel(int num) {
         this.levels.add(num);
+    }
+
+    public void addLevelReg(String reg) {
+        this.levelregs.add(reg);
     }
 
     public void setHasValue() {

@@ -1,0 +1,10 @@
+FUNKCIA VOID f(ZNAK[] c)
+    c = "a"
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO arr[10][20]
+
+    arr = 5
+    arr[3] = 1
+HOTOVO

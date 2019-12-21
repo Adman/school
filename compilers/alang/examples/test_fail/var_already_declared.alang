@@ -1,0 +1,10 @@
+BUD CISLO a
+
+FUNKCIA CISLO MAIN()
+    BUD CISLO b
+    BUD CISLO a
+
+    b = 5
+
+    BUD CISLO b
+HOTOVO

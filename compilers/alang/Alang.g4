@@ -14,8 +14,7 @@ block:
     BUD var_type ID (index_to_array)*                                       # BlockVarDec
     | ID (index_to_array)* ASSIGN expression                                # BlockAsgn
     | ID LPAR (expression (COMMA expression)*)? RPAR                        # BlockFuncCall
-    | VYPISZNAKY expression                                                 # BlockOutputString
-    | VYPISZNAKYLN expression                                               # BlockOutputStringLn
+    | VYPISZNAKY STRING                                                     # BlockOutputString
     | VYPLUJ expression?                                                    # BlockReturn
     | MAKAJ LPAR expression RPAR NEWLINE+ (block NEWLINE+)+ NEWLINE* JAKAM  # BlockLoop
     | IF LPAR expression RPAR NEWLINE+ (block NEWLINE+)+ (ELSE NEWLINE+ (else_block NEWLINE+)*)? NEWLINE* FI # BlockIf
@@ -30,7 +29,7 @@ arguments: argtype ID (COMMA argtype ID)*;
 index_to_array: LSQUARE expression RSQUARE;
 index_to_global_array: LSQUARE INT RSQUARE;
 
-global_expression: INT | STRING | TRUE | FALSE;
+global_expression: INT | TRUE | FALSE;
 
 expression:
     op=(ADD | SUB | NOT) expression                                 # ExpUna
@@ -43,7 +42,7 @@ expression:
     | ID                                                            # ExpId
     | ID LPAR (expression (COMMA expression)*)? RPAR                # ExpFuncCall
     | INT                                                           # ExpInt
-    | STRING                                                        # ExpString
+    | STRING                                                        # ExpChar
     | TRUE                                                          # ExpTrue
     | FALSE                                                         # ExpFalse
     ;
@@ -57,7 +56,6 @@ argtype:
 var_type: CISLO|ZNAK|BOOL;
 
 return_type: CISLO|ZNAK|BOOL|VOID;
-
 
 BUD: 'BUD';
 
@@ -74,12 +72,7 @@ IF: 'IF';
 ELSE: 'ELSE';
 FI: 'FI';
 
-CITAJCISLO: 'CITAJCISLO';
-CITAJRIADOK: 'CITAJRIADOK';
-VYPISCISLO: 'VYPISCISLO';
-VYPISCISLOLN: 'VYPISCISLOLN';
 VYPISZNAKY: 'VYPISZNAKY';
-VYPISZNAKYLN: 'VYPISZNAKYLN';
 
 CISLO: 'CISLO';
 ZNAK: 'ZNAK';

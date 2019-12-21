@@ -1,0 +1,9 @@
+BUD CISLO globalarr[10][20]
+
+FUNKCIA VOID x(CISLO[][] arr)
+
+HOTOVO
+
+FUNKCIA CISLO MAIN()
+    x(globalarr)
+HOTOVO
