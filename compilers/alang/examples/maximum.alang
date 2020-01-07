@@ -17,7 +17,9 @@ FUNKCIA CISLO MAIN()
         i = i + 1
     JAKAM
 
-    vypiscisloln(maxnum)
+    IF (length > 0)
+        vypiscisloln(maxnum)
+    FI
 
     VYPLUJ 0
 HOTOVO
