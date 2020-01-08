@@ -44,8 +44,8 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
 
     private String generateNewRegister(boolean global) {
         if (global)
-            return String.format("@reg%d", this.registerIndex++);
-        return String.format("%%reg%d", this.registerIndex++);
+            return String.format("@R%d", this.registerIndex++);
+        return String.format("%%R%d", this.registerIndex++);
     }
 
     private String generateNewLabel() {
@@ -960,6 +960,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
             return new CodeFragment("");
         } else if (str.length() == 2) {
             str = str.replace("\\", "");
+            /* map escaped characters to their ascii value */
             switch (str) {
                 case "0": ascii = 0; break;
                 case "n": ascii = 10; break;

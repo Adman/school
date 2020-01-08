@@ -66,8 +66,6 @@ public class Variable {
     public String getLLVMLocalDeclareType() {
         if (this.arity == 0)
             return this.llvmtype;
-
-        // TODO
         return "";
     }
 
