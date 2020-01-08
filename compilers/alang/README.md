@@ -35,11 +35,10 @@ All variables and arrays are available only in block they were defined in.
 * Difference `<CISLO> - <CISLO>` returns `CISLO`
 * Multiplication `<CISLO> * <CISLO>` returns `CISLO`
 * Division `<CISLO> / <CISLO>` returns `CISLO`
+* Modulo `<CISLO> % <CISLO>` returns `CISLO`
 * Logical and `<BOOL> AND <BOOL>` returns `BOOL`
 * Logical or `<BOOL> OR <BOOL>` returns `BOOL`
 * Negation `NOT <BOOL>` returns `BOOL`
-* String addition `<ZNAK> + <ZNAK>` returns `ZNAK` (concatenated)
-* String and number addition `<ZNAK> + CISLO` returns `ZNAK` (concatenated)
 * Comparisons
     - `<CISLO> < <CISLO>` returns `BOOL` (lower than)
     - `<CISLO> > <CISLO>` returns `BOOL` (greater than)
@@ -52,7 +51,7 @@ All variables and arrays are available only in block they were defined in.
     - `<ZNAK> == <ZNAK>` returns `BOOL` (equals)
     - `<ZNAK> != <ZNAK>` returns `BOOL` (does not equal)
 
-In terms of priority, multiplication and division are of higher priority
+In terms of priority, multiplication, division and modulo are of higher priority
 than addition and difference. Also, `AND` is of higher priority than `OR`.
 It's better to use braces to make sure that operations will be executed
 in order you expect i.e. `(a + b) * c` means that `a` is added to `b` and
@@ -85,7 +84,7 @@ be ommited, but remember that you have to always close condition block by
 
 ### Loops
 
-"while" loop, which loops while <expression> is returning `TRUE`
+"while" loop, which loops while `<expression>` is returning `TRUE`
 ```
 MAKAJ (<expression>)
     <statement>
@@ -129,3 +128,24 @@ only one command per line. Also note that indentation does not matter.
 * [Finding maximum](examples/maximum.alang)
 * [Sorting strings lexicographically](examples/stringsort.alang)
 * [Shortest paths in graph](examples/shortestpaths.alang)
+
+Example programs which should fail at compile time can be found
+in [test fail directory](examples/test_fail).
+
+## Scripts
+
+If you want to build compiler, move to `src` directory and run `make`.
+
+If you want to compile library, move to `src` directory and run `make library`.
+
+To compile a program written in alang, run following
+
+```bash
+$ ./compile.sh /path/to/program.alang > path/to/output.ll
+```
+
+To run the compiled program, run following
+
+```bash
+$ ./run.sh path/to/output.ll
+```

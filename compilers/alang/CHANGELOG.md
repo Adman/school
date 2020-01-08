@@ -4,6 +4,7 @@
 * `ZNAK` variable might contain only one character. If you want to work with string,
   you need `ZNAK[n]` (`ZNAK` caused problems with length specification)
 * added modulo operation `a % b` which returns remainder after signed division
+* removed `ZNAK` + `ZNAK` and `ZNAK` + `CISLO` operations
 * I decided to use i32 for BOOL type as well
 * changed reading input - instead of `CITAJCISLO x`, we will use function `x = citajcislo()`
   and also printing the number is done via function `vypiscislo(x)` or `vypiscisloln(x)`
