@@ -17,7 +17,13 @@ FUNKCIA VOID floydwarshall(CISLO[][] w, CISLO n)
         MAKAJ (i < n)
             j = 0
             MAKAJ (j < n)
-                w[i][j] = min(w[i][j], w[i][k] + w[k][j])
+                IF (w[i][k] != -1 AND w[k][j] != -1)
+                    IF (w[i][j] == -1)
+                        w[i][j] = w[i][k] + w[k][j]
+                    ELSE
+                        w[i][j] = min(w[i][j], w[i][k] + w[k][j])
+                    FI
+                FI
                 j = j + 1
             JAKAM
             i = i + 1
