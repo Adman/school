@@ -452,7 +452,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
     }
 
     /* assign value to local variable */
-	@Override
+    @Override
     public CodeFragment visitBlockAsgn(AlangParser.BlockAsgnContext ctx) {
         String name = ctx.ID().getText();
         if (!variableExists(name)) {
@@ -532,7 +532,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitBlockLoop(AlangParser.BlockLoopContext ctx) {
         CodeFragment expr = visit(ctx.expression());
         CodeFragment result = new CodeFragment();
@@ -573,14 +573,14 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitBlockContinue(AlangParser.BlockContinueContext ctx) {
         CodeFragment result = new CodeFragment();
         result.addCode(String.format("br label %%%s\n", this.labelLoopCmp));
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitBlockFuncCall(AlangParser.BlockFuncCallContext ctx) {
         String name = ctx.ID().getText();
 
@@ -600,7 +600,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return this.callFunc(ctx.expression(), f);
     }
 
-	@Override
+    @Override
     public CodeFragment visitBlockOutputString(AlangParser.BlockOutputStringContext ctx) {
         String message = ctx.STRING().getText().replaceAll("\"", ""); // message with quotes
         ST template = this.group.getInstanceOf("stringconstdeclare");
@@ -655,7 +655,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return new CodeFragment(funccall.render() + "\n");
     }
 
-	@Override
+    @Override
     public CodeFragment visitBlockReturn(AlangParser.BlockReturnContext ctx) {
         CodeFragment result = new CodeFragment("");
         if (this.scope.returntype.equals(Types.LLVMVOID)) {
@@ -730,7 +730,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpComp(AlangParser.ExpCompContext ctx) {
         CodeFragment exprL = visit(ctx.expression(0));
         CodeFragment exprR = visit(ctx.expression(1));
@@ -840,7 +840,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return this.generateBinOPinstruction(inst, "i32", exprL, exprR);
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpFalse(AlangParser.ExpFalseContext ctx) {
         CodeFragment result = new CodeFragment();
         result.setRegister(this.generateNewRegister(false));
@@ -861,7 +861,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return visit(ctx.expression());
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpIdArray(AlangParser.ExpIdArrayContext ctx) {
         String name = ctx.ID().getText();
         if (!variableExists(name)) {
@@ -892,7 +892,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpFuncCall(AlangParser.ExpFuncCallContext ctx) {
         String name = ctx.ID().getText();
 
@@ -917,7 +917,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return this.callFunc(ctx.expression(), f);
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpId(AlangParser.ExpIdContext ctx) {
         String name = ctx.ID().getText();
         if (!variableExists(name)) {
@@ -951,7 +951,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpChar(AlangParser.ExpCharContext ctx) {
         String str = ctx.STRING().getText().replaceAll("\"", "");
         int ascii = 0;
@@ -986,7 +986,7 @@ public class AlangMyVisitor extends AlangBaseVisitor<CodeFragment> {
         return result;
     }
 
-	@Override
+    @Override
     public CodeFragment visitExpInt(AlangParser.ExpIntContext ctx) {
         CodeFragment result = new CodeFragment();
         result.setRegister(this.generateNewRegister(false));
